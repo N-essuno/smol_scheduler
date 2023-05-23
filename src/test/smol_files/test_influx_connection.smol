@@ -1,0 +1,22 @@
+main
+    Double moisture = 0.0;
+    List<Double> influxReturn = null;
+    
+    // uses list because influx queries return lists
+    influxReturn = access(
+        "from(bucket: \"greenhouse_test\")
+            |> range(start: -30d)
+            |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
+            |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
+            |> filter(fn: (r) => r[\"group_position\"] == \"right\")
+            |> filter(fn: (r) => r[\"pot_position\"] == \"left\")
+            |> filter(fn: (r) => r[\"shelf_floor\"] == 1)
+            |> keep(columns: [\"_value\"])
+            |> last()",
+    INFLUXDB("config_local.yml"));
+    // get first value of list (list contains just one value)
+    moisture = influxReturn.get(0);
+    
+    // print moisture
+    print(moisture);
+end

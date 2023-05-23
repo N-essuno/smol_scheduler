@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+group 'no.uio'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation 'org.apache.jena:jena-arq:3.17.0'
+    implementation files('lib/smol.jar')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+shadowJar {
+    archiveFileName='smol_scheduler.jar'
+}
+assemble.dependsOn shadowJar
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'SmolScheduler'
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-source" << "17" << "-target" << "17"
+}
