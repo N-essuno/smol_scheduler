@@ -5,3 +5,6 @@
 .idea/
 /src/main/resources/*.yml
 
+# SMOL Lifted state output
+/src/main/kg_output/
+
