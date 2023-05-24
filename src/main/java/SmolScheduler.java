@@ -22,7 +22,7 @@ public class SmolScheduler {
         // maybe SmolScheduler should take a path to a smol file as an argument instead of hardcoding it
 
         repl.command("read",
-            "../common_resources/greenhouse.smol");
+            "src/main/resources/greenhouse.smol");
 
         repl.command("auto", "");
         repl.command("dump", "out.ttl");
@@ -33,7 +33,7 @@ public class SmolScheduler {
         boolean verbose = true;
         boolean materialize = false;
         String kgOutput = "src/main/kg_output/";
-        String greenhouseAssetModel = "../common_resources/greenhouse.ttl";
+        String greenhouseAssetModel = "src/main/resources/greenhouse.ttl";
         String domainPrefix = "http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#";
         String progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#";
         String runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#";
