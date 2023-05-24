@@ -95,7 +95,7 @@ class Plant(String plantId)
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("../common_resources/config_local.yml"),
+        INFLUXDB("src/main/resources/config_local.yml"),
         this.plantId);
 
         healthState = influxReturn.get(0);
@@ -126,7 +126,7 @@ class Pot(String shelfFloor, String groupPosition, String potPosition)
                 |> filter(fn: (r) => r[\"shelf_floor\"] == %3)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("../common_resources/config_local.yml"),
+        INFLUXDB("src/main/resources/config_local.yml"),
         this.groupPosition,
         this.potPosition,
         this.shelfFloor);
@@ -160,7 +160,7 @@ class Shelf(String shelfFloor)
                 |> filter(fn: (r) => r[\"shelf_floor\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("../common_resources/config_local.yml"),
+        INFLUXDB("src/main/resources/config_local.yml"),
         this.shelfFloor);
         // get first value of list (list contains just one value)
         humidity = influxReturn.get(0);
@@ -181,7 +181,7 @@ class Shelf(String shelfFloor)
                 |> filter(fn: (r) => r[\"shelf_floor\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("../common_resources/config_local.yml"),
+        INFLUXDB("src/main/resources/config_local.yml"),
         this.shelfFloor);
         // get first value of list (list contains just one value)
         temperature = influxReturn.get(0);
@@ -207,7 +207,7 @@ class Greenhouse()
                 |> filter(fn: (r) => r[\"_field\"] == \"light\")
                 |> keep(columns: [\"_value\"])
                 |> last()",
-            INFLUXDB("../common_resources/config_local.yml"));
+            INFLUXDB("src/main/resources/config_local.yml"));
         light = influxReturn.get(0);
         return light;
     end
@@ -233,7 +233,7 @@ class Pump(String shelfFloor, String groupPosition)
                 |> filter(fn: (r) => r[\"group_position\"] == %2)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-            INFLUXDB("../common_resources/config_local.yml"),
+            INFLUXDB("src/main/resources/config_local.yml"),
             this.shelfFloor,
             this.groupPosition);
         pumpedWater = influxReturn.get(0);
