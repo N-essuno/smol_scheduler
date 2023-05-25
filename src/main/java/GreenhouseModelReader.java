@@ -5,16 +5,16 @@ import java.util.Iterator;
 import java.util.List;
 
 public class GreenhouseModelReader {
-    String smol = "https://github.com/Edkamb/SemanticObjects#";
-    String ast = "http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#";
-    String owl = "http://www.w3.org/2002/07/owl#";
-    String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-    String xml = "http://www.w3.org/XML/1998/namespace";
-    String domain = "https://github.com/Edkamb/SemanticObjects/ontologies/default#";
-    String xsd = "http://www.w3.org/2001/XMLSchema#";
-    String run = "https://github.com/Edkamb/SemanticObjects/Run1684935071653#";
-    String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
-    String prog = "https://github.com/Edkamb/SemanticObjects/Program#";
+    String smol;
+    String ast;
+    String owl;
+    String rdf;
+    String xml;
+    String domain;
+    String xsd;
+    String run;
+    String rdfs;
+    String prog;
     Model model;
 
     public GreenhouseModelReader(String modelInputPath){
@@ -38,9 +38,16 @@ public class GreenhouseModelReader {
     }
 
     private void readPrefixes(){
-        // TODO add other prefixes from model instead of hardcoding them
         rdf = model.getNsPrefixURI("rdf");
         xsd = model.getNsPrefixURI("xsd");
+        rdfs = model.getNsPrefixURI("rdfs");
+        prog = model.getNsPrefixURI("prog");
+        run = model.getNsPrefixURI("run");
+        domain = model.getNsPrefixURI("domain");
+        xml = model.getNsPrefixURI("xml");
+        owl = model.getNsPrefixURI("owl");
+        ast = model.getNsPrefixURI("ast");
+        smol = model.getNsPrefixURI("smol");
     }
 
 }
