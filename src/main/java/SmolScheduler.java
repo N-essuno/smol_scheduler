@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -38,9 +39,17 @@ public class SmolScheduler {
         GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader(liftedStateOutputPath);
         List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
 
-        for (Integer id : idPlantsToWater) {
-            System.out.println("Watering plant with id " + id);
-        }
+        startWaterActuator(idPlantsToWater);
+    }
+
+    private static void startWaterActuator(List<Integer> idPlantsToWater) {
+        SshSender sshSender = new SshSender(ConfigTypeEnum.TEST);
+        List<String> cmds = new ArrayList<>();
+        cmds.add("ls -latr");
+        cmds.add("cd greenhouse_actuator");
+        cmds.add("python3 -m actuator pump 1");
+        sshSender.execCmds(cmds);
+
     }
 
     @NotNull
