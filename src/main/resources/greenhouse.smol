@@ -36,9 +36,9 @@ main
         Plant plant = plants.get(i);
         print("plantId: ");
         print(plant.plantId);
-        Double healthState = plant.getHealthState();
-        print(" healthState: ");
-        print(healthState);
+        Double ndvi = plant.getNdvi();
+        print(" ndvi: ");
+        print(ndvi);
         i = i+1;
     end
     
@@ -82,8 +82,8 @@ end
 * Represents a physical Plant. Should be retrieved from the asset model via AssetModel.getPlants()
 * Each plant is contained in a Pot. The Pot contains the information about which plant contains.
 */
-class Plant(String plantId)
-    Double getHealthState()
+class Plant(String plantId, Double idealMoisture)
+    Double getNdvi()
         Double healthState = 0.0;
         List<Double> influxReturn = null;
 
@@ -91,7 +91,7 @@ class Plant(String plantId)
             "from(bucket: \"greenhouse_test\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
-                |> filter(fn: (r) => r[\"_field\"] == \"health_state\")
+                |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
@@ -100,6 +100,25 @@ class Plant(String plantId)
 
         healthState = influxReturn.get(0);
         return healthState;
+    end
+
+    Double getPotMoisture()
+        Double moisture = 0.0;
+        List<Double> influxReturn = null;
+
+        influxReturn = access(
+            "from(bucket: \"greenhouse_test\")
+                |> range(start: -30d)
+                |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
+                |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
+                |> filter(fn: (r) => r[\"plant_id\"] == %1)
+                |> keep(columns: [\"_value\"])
+                |> last()",
+        INFLUXDB("src/main/resources/config_local.yml"),
+        this.plantId);
+
+        moisture = influxReturn.get(0);
+        return moisture;
     end
 end
 
@@ -291,10 +310,11 @@ class AssetModel()
     List<Plant> getPlants()
         List<Plant> plants = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?plantId
+            SELECT ?plantId ?idealMoisture
             WHERE {
                 ?plant rdf:type ast:Plant ;
-                    ast:hasPlantId ?plantId .
+                    ast:hasPlantId ?plantId ;
+                    ast:hasIdealMoisture ?idealMoisture .
             }
         ");
         return plants;
