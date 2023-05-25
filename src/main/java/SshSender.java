@@ -98,6 +98,7 @@ public class SshSender {
     }
 
     public void setConfig(ConfigTypeEnum configType){
+        // TODO make this more generic
         if (configMap == null) {
             readConfig();
         }
@@ -116,12 +117,6 @@ public class SshSender {
             default:
                 System.out.println("Config type not found");
         }
-    }
-
-    public static void main(String[] args) {
-        SshSender sshSender = new SshSender(ConfigTypeEnum.TEST);
-        List<String> cmdList = List.of("ls -latr");
-        sshSender.execCmds(cmdList);
     }
 
 }
