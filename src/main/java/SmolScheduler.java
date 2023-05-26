@@ -60,7 +60,6 @@ public class SmolScheduler {
 
     @NotNull
     private static Settings getSettings() {
-        System.out.println("---------- Start getSettings ----------");
         boolean verbose = true;
         boolean materialize = false;
         String kgOutput = liftedStateOutputPath;
@@ -74,7 +73,6 @@ public class SmolScheduler {
 
         String assetModel = getAssetModel(greenhouseAssetModel);
 
-        System.out.println("---------- End getSettings ----------");
         return new Settings(
             verbose,
             materialize,
