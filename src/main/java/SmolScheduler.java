@@ -12,11 +12,19 @@ import java.util.List;
 
 public class SmolScheduler {
     private static String liftedStateOutputPath = "src/main/kg_output/out.ttl";
+    private static Settings settings = getSettings();
+    private GreenhouseModelReader greenhouseModelReader;
+    private static String smolPath = "src/main/resources/test_check_moisture.smol";
 
-    public static void main(String[] args) {
+    public static void run() {
+        System.out.println("---------- Start run SmolScheduler ----------");
         ARQ.init();
-        Settings settings = getSettings();
+        execSmol();
+        checkMoistureFromLiftedState();
+        System.out.println("---------- End run SmolScheduler ----------");
+    }
 
+    public static void execSmol() {
         REPL repl = new REPL(settings);
 
         repl.command("verbose", "true");
@@ -24,19 +32,17 @@ public class SmolScheduler {
         // TODO run test on test_influx_connection.smol
         // maybe SmolScheduler should take a path to a smol file as an argument instead of hardcoding it
 
-        repl.command("read",
-            "src/main/resources/test_check_moisture.smol");
-
+        repl.command("read", smolPath);
         repl.command("auto", "");
+
+        System.out.println("---------- Generating lifted state... ----------");
         repl.command("dump", "out.ttl");
 
         repl.terminate();
-
-        checkMoistureFromLiftedState();
     }
 
     private static void checkMoistureFromLiftedState() {
-        GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader(liftedStateOutputPath);
+        GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader("src/main/kg_output/out.ttl");
         List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
 
         startWaterActuator(idPlantsToWater);
@@ -49,7 +55,6 @@ public class SmolScheduler {
         cmds.add("cd greenhouse_actuator");
         cmds.add("python3 -m actuator pump 1");
         sshSender.execCmds(cmds);
-
     }
 
     @NotNull
