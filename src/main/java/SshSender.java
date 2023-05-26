@@ -73,7 +73,7 @@ public class SshSender {
     }
 
     public void readConfig(){
-        Utils.readConfig("src/main/resources/config.yml");
+        Utils.readConfig("src/main/resources/config_ssh.yml");
     }
 
     public void readConfig(String configPath){
