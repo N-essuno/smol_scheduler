@@ -12,7 +12,9 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    implementation 'org.apache.jena:jena-arq:4.2.0'
+    // Do not change jena version
+    implementation 'org.apache.jena:apache-jena-libs:3.16.0'
+    implementation 'org.apache.jena:jena-core:3.16.0'
     implementation files('lib/smol.jar')
     implementation group: 'com.jcraft', name: 'jsch', version: '0.1.54'
     implementation 'software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.+:linux-x86_64'
