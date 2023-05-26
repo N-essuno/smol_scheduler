@@ -9,18 +9,23 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SmolScheduler {
-    private static String liftedStateOutputPath = "src/main/kg_output/out.ttl";
-    private static Settings settings = getSettings();
-    private GreenhouseModelReader greenhouseModelReader;
-    private static String smolPath = "src/main/resources/test_check_moisture.smol";
+    private static final Map<String, Object> configMap = Utils
+        .readConfig("src/main/resources/config_scheduler.yml");
+    private static final String liftedStateOutputFile = configMap.get("lifted_state_output_file").toString();
+    private static final String liftedStateOutputPath = configMap.get("lifted_state_output_path").toString();
+    private static final String greenhouseAssetModelFile = configMap.get("greenhouse_asset_model_file").toString();
+    private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
+    private static final Settings settings = getSettings();
+    private static final String smolPath = configMap.get("smol_path").toString();;
 
     public static void run() {
         System.out.println("---------- Start run SmolScheduler ----------");
         ARQ.init();
         execSmol();
-        checkMoistureFromLiftedState();
+        waterControl();
         System.out.println("---------- End run SmolScheduler ----------");
     }
 
@@ -28,9 +33,6 @@ public class SmolScheduler {
         REPL repl = new REPL(settings);
 
         repl.command("verbose", "true");
-
-        // TODO run test on test_influx_connection.smol
-        // maybe SmolScheduler should take a path to a smol file as an argument instead of hardcoding it
 
         repl.command("read", smolPath);
         repl.command("auto", "");
@@ -41,10 +43,9 @@ public class SmolScheduler {
         repl.terminate();
     }
 
-    private static void checkMoistureFromLiftedState() {
-        GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader("src/main/kg_output/out.ttl");
+    private static void waterControl() {
+        GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader(liftedStateOutputFile);
         List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
-
         startWaterActuator(idPlantsToWater);
     }
 
@@ -59,11 +60,12 @@ public class SmolScheduler {
 
     @NotNull
     private static Settings getSettings() {
+        System.out.println("---------- Start getSettings ----------");
         boolean verbose = true;
         boolean materialize = false;
-        String kgOutput = "src/main/kg_output/";
-        String greenhouseAssetModel = "src/main/resources/greenhouse.ttl";
-        String domainPrefix = "http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#";
+        String kgOutput = liftedStateOutputPath;
+        String greenhouseAssetModel = greenhouseAssetModelFile;
+        String domainPrefix = domainPrefixUri;
         String progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#";
         String runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#";
         String langPrefix = "https://github.com/Edkamb/SemanticObjects#";
@@ -72,6 +74,7 @@ public class SmolScheduler {
 
         String assetModel = getAssetModel(greenhouseAssetModel);
 
+        System.out.println("---------- End getSettings ----------");
         return new Settings(
             verbose,
             materialize,
