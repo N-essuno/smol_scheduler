@@ -33,7 +33,7 @@ assemble.dependsOn shadowJar
 jar {
     manifest {
         attributes(
-                'Main-Class': 'SmolScheduler'
+                'Main-Class': 'Main'
         )
     }
 }
