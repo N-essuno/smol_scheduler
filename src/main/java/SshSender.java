@@ -14,8 +14,6 @@ public class SshSender {
     String password;
     int port;
     Map<String, Object> configMap;
-
-
     Session session = null;
 
 
@@ -75,26 +73,11 @@ public class SshSender {
     }
 
     public void readConfig(){
-        readConfig("src/main/resources/config_ssh.yml");
+        Utils.readConfig("src/main/resources/config.yml");
     }
 
     public void readConfig(String configPath){
-        InputStream inputStream;
-        try {
-            inputStream = new FileInputStream(configPath);
-        } catch (FileNotFoundException e) {
-            System.out.println("ERROR: Config file not found at " + configPath);
-            throw new RuntimeException(e);
-        }
-
-        Yaml yaml = new Yaml();
-        configMap = yaml.load(inputStream);
-
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        configMap = Utils.readConfig(configPath);
     }
 
     public void setConfig(ConfigTypeEnum configType){
