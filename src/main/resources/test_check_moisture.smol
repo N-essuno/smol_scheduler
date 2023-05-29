@@ -51,13 +51,16 @@ main
 
     // 
     i = 0;
-    Int plantsToWaterLength = plantsToWater.length();
-    
-    while i < plantsToWaterLength do
-        print("Id plant to water: ");
-        plantToWater = plantsToWater.get(i);
-        print(plantToWater.plantId);
-        i = i + 1;
+
+    if (plantsToWater != null) then
+        Int plantsToWaterLength = plantsToWater.length();
+        
+        while i < plantsToWaterLength do
+            print("Id plant to water: ");
+            plantToWater = plantsToWater.get(i);
+            print(plantToWater.plantId);
+            i = i + 1;
+        end
     end
 
     breakpoint;
