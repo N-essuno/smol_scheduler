@@ -39,9 +39,9 @@ public class Utils {
 
     public static Map<String, Object> readSchedulerConfig(){
         if (executingJar) {
-            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-            currentPath = currentPath.resolve("config_scheduler.yml");
-            return readConfig(currentPath.toString());
+            Path path = Path.of(currentPath);
+            path = path.resolve("config_scheduler.yml");
+            return readConfig(path.toString());
         } else {
             return readConfig("src/main/resources/config_scheduler.yml");
         }
@@ -49,9 +49,9 @@ public class Utils {
 
     public static Map<String, Object> readSshConfig(){
         if (executingJar) {
-            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-            currentPath = currentPath.resolve("config_ssh.yml");
-            return readConfig(currentPath.toString());
+            Path path = Path.of(currentPath);
+            path = path.resolve("config_ssh.yml");
+            return readConfig(path.toString());
         } else {
             return readConfig("src/main/resources/config_ssh.yml");
         }
@@ -59,9 +59,9 @@ public class Utils {
 
     public static Map<String, Object> readInfluxConfig(){
         if (executingJar) {
-            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-            currentPath = currentPath.resolve("config_local.yml");
-            return readConfig(currentPath.toString());
+            Path path = Path.of(currentPath);
+            path = path.resolve("config_ssh.yml");
+            return readConfig(path.toString());
         } else {
             return readConfig("src/main/resources/config_local.yml");
         }
