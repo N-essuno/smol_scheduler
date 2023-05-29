@@ -102,8 +102,7 @@ ast:hasHumidity rdf:type owl:DatatypeProperty ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasIdealMoisture
 ast:hasIdealMoisture rdf:type owl:DatatypeProperty ;
-                     rdfs:domain ast:Plant ;
-                     rdfs:range ast:percentage .
+                     rdfs:domain ast:Plant .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasIdealTemperature
@@ -198,7 +197,7 @@ ast:Basilicum rdf:type owl:Class ;
               rdfs:subClassOf ast:Plant ,
                               [ rdf:type owl:Restriction ;
                                 owl:onProperty ast:hasIdealMoisture ;
-                                owl:hasValue "50.0"^^xsd:double
+                                owl:hasValue "50.0"
                               ] .
 
 
@@ -228,10 +227,6 @@ ast:Pepper rdf:type owl:Class ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#Plant
 ast:Plant rdf:type owl:Class ;
-          rdfs:subClassOf [ rdf:type owl:Restriction ;
-                            owl:onProperty ast:hasIdealMoisture ;
-                            owl:someValuesFrom ast:percentage
-                          ] ;
           owl:hasKey ( ast:hasPlantId
                      ) .
 
@@ -307,15 +302,15 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum1
 ast:basilicum1 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "50.0"^^xsd:double ;
-               ast:hasPlantId "basilicum1"^^xsd:string .
+               ast:hasIdealMoisture "50.0"^^xsd:string ;
+               ast:hasPlantId "1"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum2
 ast:basilicum2 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "50.0"^^xsd:double ;
-               ast:hasPlantId "basilicum2"^^xsd:string .
+               ast:hasIdealMoisture "50.0"^^xsd:string ;
+               ast:hasPlantId "2"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#deadHealthState
