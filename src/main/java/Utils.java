@@ -37,7 +37,6 @@ public class Utils {
     }
 
     public static Map<String, Object> readSchedulerConfig(){
-        System.out.println(currentPath+"\\config_scheduler.yml");
         if (executingJar) {
             return readConfig(currentPath+"\\config_scheduler.yml");
         } else {
@@ -46,11 +45,18 @@ public class Utils {
     }
 
     public static Map<String, Object> readSshConfig(){
-        System.out.println(currentPath+"\\config_ssh.yml");
         if (executingJar) {
             return readConfig(currentPath+"\\config_ssh.yml");
         } else {
             return readConfig("src/main/resources/config_ssh.yml");
+        }
+    }
+
+    public static Map<String, Object> readInfluxConfig(){
+        if (executingJar) {
+            return readConfig(currentPath+"\\config_local.yml");
+        } else {
+            return readConfig("src/main/resources/config_local.yml");
         }
     }
 
