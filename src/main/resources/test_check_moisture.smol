@@ -1,19 +1,11 @@
 main
     Int i = 0;
+    Plant plant = null;
 
-    // Create test pots
-    Pot pot1 = new Pot("1", "left", "left");
-    Pot pot2 = new Pot("1", "left", "right");
+    AssetModel assetModel = new AssetModel();
 
-    // Create test plants and add them to the list of plants 
-    List<Plant> plants = null;
-
-    Plant plant1 = new Plant("1", 50.0);
-    Plant plant2 = new Plant("2", 50.0);
-
-    plants = new List(plant1, plants);
-    plants = new List(plant2, plants);
-
+    List<Plant> plants = assetModel.getPlants();
+    List<Pot> pots = assetModel.getPots();
     
 
     print("--------------------------------------------------- Get plants moisture");
@@ -23,7 +15,7 @@ main
 
     // For each plant, print plant id, ideal moisture and current moisture got from InfluxDB
     while i < plantsLength do
-        Plant plant = plants.get(i);
+        plant = plants.get(i);
         Double plantMoisture = plant.getPotMoisture();
         print("Plant id: ");
         print(plant.plantId);
@@ -42,12 +34,14 @@ main
 
     // For each plant, check if it needs water. If it does, add it to the list of plants to water
     i = 0;
+    PlantToWater plantToWater = null;
+
     while i < plantsLength do
-        Plant plant = plants.get(i);
+        plant = plants.get(i);
         Double plantMoisture = plant.getPotMoisture();
         if (plantMoisture < plant.idealMoisture) then
             print("Plant needs water");
-            PlantToWater plantToWater = new PlantToWater(plant.plantId);
+            plantToWater = new PlantToWater(plant.plantId);
             plantsToWater = new List(plantToWater, plantsToWater);
         else 
             print("Plant is fine");
@@ -58,9 +52,10 @@ main
     // 
     i = 0;
     Int plantsToWaterLength = plantsToWater.length();
+    
     while i < plantsToWaterLength do
         print("Id plant to water: ");
-        PlantToWater plantToWater = plantsToWater.get(i);
+        plantToWater = plantsToWater.get(i);
         print(plantToWater.plantId);
         i = i + 1;
     end
@@ -139,4 +134,65 @@ class Pot(String shelfFloor, String groupPosition, String potPosition)
 end
 
 class PlantToWater(Int plantId)
+end
+
+/**
+* Retrieves data from the asset model and convert it to SMOL objects
+*/
+class AssetModel()
+    // get pot instances from the asset model
+    List<Pot> getPots()
+        List<Pot> pots = construct("
+        PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+        SELECT ?shelfFloor ?groupPosition ?potPosition
+        WHERE {
+            ?pot rdf:type ast:Pot ;
+                ast:hasShelfFloor ?shelfFloor ;
+                ast:hasGroupPosition ?groupPosition ;
+                ast:hasPotPosition ?potPosition .
+        }");
+        return pots;
+        // edit query to get new pots
+    end
+
+    // get shelf instances from the asset model
+    List<Shelf> getShelves()
+        List<Shelf> shelves = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?shelfFloor
+            WHERE {
+                ?shelf rdf:type ast:Shelf ;
+                    ast:hasShelfFloor ?shelfFloor .
+            }
+        ");
+        return shelves;
+    end
+
+    // get pump instances from the asset model
+    List<Pump> getPumps()
+        List<Pump> pumps = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?shelfFloor ?groupPosition
+            WHERE {
+                ?pump rdf:type ast:Pump ;
+                    ast:hasShelfFloor ?shelfFloor ;
+                    ast:hasGroupPosition ?groupPosition.
+            }
+        ");
+        return pumps;
+    end
+
+    // get plant instances from the asset model
+    List<Plant> getPlants()
+        List<Plant> plants = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?plantId ?idealMoisture
+            WHERE {
+                ?plant rdf:type ast:Plant ;
+                    ast:hasPlantId ?plantId ;
+                    ast:hasIdealMoisture ?idealMoisture .
+            }
+        ");
+        return plants;
+    end
 end
