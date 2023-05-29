@@ -67,13 +67,13 @@ public class SshSender {
     }
 
     private void printResult(String cmd, String response) {
-        System.out.println("|----------| Executed command: " + cmd + " |----------|");
+        System.out.println("|*************| SSH: Executed command: " + cmd + " |*************|");
         System.out.println(response);
-        System.out.println("|--------------------------------------------------|");
+        System.out.println("|********************************************************|");
     }
 
     public void readConfig(){
-        Utils.readConfig("src/main/resources/config_ssh.yml");
+        readConfig("src/main/resources/config_ssh.yml");
     }
 
     public void readConfig(String configPath){

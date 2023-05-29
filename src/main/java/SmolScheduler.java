@@ -22,13 +22,15 @@ public class SmolScheduler {
     private static final String smolPath = configMap.get("smol_path").toString();;
 
     public static void run() {
-        System.out.println("|----------| Start run SmolScheduler |----------|");
+        System.out.println("|----------------------------------------| Start run SmolScheduler |----------------------------------------|");
         ARQ.init();
-        System.out.println("|----------| Start executing SMOL code |----------|\n\n");
+        System.out.println("|--------------------| Start executing SMOL code |--------------------|\n\n");
         execSmol();
-        System.out.println("\n\n|----------| End executing SMOL code |----------|\n\n");
+        System.out.println("\n\n|--------------------| End executing SMOL code |--------------------|\n\n");
+        System.out.println("|--------------------| Start water control |--------------------|\n\n");
         waterControl();
-        System.out.println("|----------| End run SmolScheduler |----------|");
+        System.out.println("\n\n|--------------------| End water control |--------------------|\n\n");
+        System.out.println("|----------------------------------------| End run SmolScheduler |----------------------------------------|");
     }
 
     public static void execSmol() {
@@ -39,9 +41,9 @@ public class SmolScheduler {
         repl.command("read", smolPath);
         repl.command("auto", "");
 
-        System.out.println("\n\n---------- Start generating lifted state... ----------");
+        System.out.println("++++++++++++++++++++++ Start generating lifted state... ++++++++++++++++++++++");
         repl.command("dump", "out.ttl");
-        System.out.println("\n\n---------- End generating lifted state ----------");
+        System.out.println("++++++++++++++++++++++ End generating lifted state ++++++++++++++++++++++");
 
         repl.terminate();
     }
