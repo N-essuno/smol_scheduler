@@ -93,6 +93,7 @@ public class SshSender {
                 username = configMap.get("actuator_username").toString();
                 password = configMap.get("actuator_password").toString();
                 port = Integer.parseInt(configMap.get("actuator_port").toString());
+                break;
             default:
                 System.out.println("Config type not found");
         }
