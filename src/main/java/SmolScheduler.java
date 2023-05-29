@@ -55,12 +55,12 @@ public class SmolScheduler {
     }
 
     private static void startWaterActuator(List<Integer> idPlantsToWater) {
-        SshSender sshSender = new SshSender(ConfigTypeEnum.TEST);
-        List<String> cmds = new ArrayList<>();
-        cmds.add("ls -latr");
-        cmds.add("cd greenhouse_actuator");
-        cmds.add("python3 -m actuator pump 1");
-        sshSender.execCmds(cmds);
+        if (idPlantsToWater.size() > 0) {
+            SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
+            List<String> cmds = new ArrayList<>();
+            cmds.add("ls -latr; cd greenhouse_actuator; python3 -m actuator pump 1");
+            sshSender.execCmds(cmds);
+        }
     }
 
     @NotNull
