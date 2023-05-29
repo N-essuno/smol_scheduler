@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Map;
 
 public class Utils {
@@ -38,7 +39,9 @@ public class Utils {
 
     public static Map<String, Object> readSchedulerConfig(){
         if (executingJar) {
-            return readConfig(currentPath+"\\config_scheduler.yml");
+            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+            currentPath = currentPath.resolve("config_scheduler.yml");
+            return readConfig(currentPath.toString());
         } else {
             return readConfig("src/main/resources/config_scheduler.yml");
         }
@@ -46,7 +49,9 @@ public class Utils {
 
     public static Map<String, Object> readSshConfig(){
         if (executingJar) {
-            return readConfig(currentPath+"\\config_ssh.yml");
+            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+            currentPath = currentPath.resolve("config_ssh.yml");
+            return readConfig(currentPath.toString());
         } else {
             return readConfig("src/main/resources/config_ssh.yml");
         }
@@ -54,7 +59,9 @@ public class Utils {
 
     public static Map<String, Object> readInfluxConfig(){
         if (executingJar) {
-            return readConfig(currentPath+"\\config_local.yml");
+            Path currentPath = Path.of(Utils.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+            currentPath = currentPath.resolve("config_local.yml");
+            return readConfig(currentPath.toString());
         } else {
             return readConfig("src/main/resources/config_local.yml");
         }
