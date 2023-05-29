@@ -1,5 +1,7 @@
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.riot.RDFDataMgr;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,10 +21,13 @@ public class GreenhouseModelReader {
 
     public GreenhouseModelReader(String modelInputPath){
         this.model = ModelFactory.createDefaultModel();
-        model.read(modelInputPath);
+        RDFDataMgr.read(model, modelInputPath);
         readPrefixes();
     }
 
+    /**
+     * Get the list of plants ids to water from the OWL model
+     * */
     public List<Integer> getPlantsIdsToWater(){
         List<Integer> idPlantsToWater = new ArrayList<>();
 
