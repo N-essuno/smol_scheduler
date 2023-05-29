@@ -23,6 +23,8 @@ The timestamp is set to (DD/MM/YYYY): `19/05/2023 10:00:00 GMT+0200 (Central Eur
 ```SQL
 ast:pot,shelf_floor=1,group_position=left,pot_position=left,plant_id=1 moisture=60.0 1684483200
 ast:pot,shelf_floor=1,group_position=left,pot_position=right,plant_id=2 moisture=20.0 1684483200
+ast:pot,shelf_floor=2,group_position=left,pot_position=left,plant_id=3 moisture=60.0 1684483200
+ast:pot,shelf_floor=2,group_position=left,pot_position=right,plant_id=4 moisture=20.0 1684483200
 
 ast:shelf,shelf_floor=1 humidity=15.0,temperature=23.0 1684483200
 ast:shelf,shelf_floor=2 humidity=10.0,temperature=19.0 1684483200
@@ -34,4 +36,6 @@ ast:pump,shelf_floor=2,group_position=left pumped_water=15.0 1684483200
 
 ast:plant,plant_id=1 ndvi=-0.4 1684483200
 ast:plant,plant_id=2 ndvi=0.2 1684483200
+st:plant,plant_id=3 ndvi=-0.4 1684483200
+ast:plant,plant_id=4 ndvi=0.2 1684483200
 ```
