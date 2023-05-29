@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class SmolScheduler {
     private static final Map<String, Object> configMap = Utils
-        .readConfig("src/main/resources/config_scheduler.yml");
+        .readSchedulerConfig();
     private static final String liftedStateOutputFile = configMap.get("lifted_state_output_file").toString();
     private static final String liftedStateOutputPath = configMap.get("lifted_state_output_path").toString();
     private static final String greenhouseAssetModelFile = configMap.get("greenhouse_asset_model_file").toString();
@@ -22,6 +22,7 @@ public class SmolScheduler {
     private static final String smolPath = configMap.get("smol_path").toString();;
 
     public static void run() {
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
         System.out.println("|----------------------------------------| Start run SmolScheduler |----------------------------------------|");
         ARQ.init();
         System.out.println("|--------------------| Start executing SMOL code |--------------------|\n\n");

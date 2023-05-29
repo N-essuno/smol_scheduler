@@ -8,6 +8,13 @@ import java.util.Map;
 
 public class Utils {
 
+    public static boolean executingJar = true;
+    private static final String currentPath = Utils.class
+        .getProtectionDomain()
+        .getCodeSource()
+        .getLocation()
+        .getPath().replace("smol_scheduler.jar", "");
+
     public static Map<String, Object> readConfig(String configPath){
         InputStream inputStream;
         try {
@@ -28,4 +35,23 @@ public class Utils {
 
         return configMap;
     }
+
+    public static Map<String, Object> readSchedulerConfig(){
+        System.out.println(currentPath+"\\config_scheduler.yml");
+        if (executingJar) {
+            return readConfig(currentPath+"\\config_scheduler.yml");
+        } else {
+            return readConfig("src/main/resources/config_scheduler.yml");
+        }
+    }
+
+    public static Map<String, Object> readSshConfig(){
+        System.out.println(currentPath+"\\config_ssh.yml");
+        if (executingJar) {
+            return readConfig(currentPath+"\\config_ssh.yml");
+        } else {
+            return readConfig("src/main/resources/config_ssh.yml");
+        }
+    }
+
 }

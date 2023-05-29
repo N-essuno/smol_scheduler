@@ -8,7 +8,6 @@ import org.yaml.snakeyaml.Yaml;
 
 
 public class SshSender {
-
     String host;
     String username;
     String password;
@@ -73,12 +72,9 @@ public class SshSender {
     }
 
     public void readConfig(){
-        readConfig("src/main/resources/config_ssh.yml");
+        configMap = Utils.readSshConfig();
     }
 
-    public void readConfig(String configPath){
-        configMap = Utils.readConfig(configPath);
-    }
 
     public void setConfig(ConfigTypeEnum configType){
         // TODO make this more generic
