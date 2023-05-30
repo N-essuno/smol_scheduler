@@ -42,6 +42,10 @@ public class GreenhouseModelReader {
         return idPlantsToWater;
     }
 
+    public void closeModel(){
+        model.close();
+    }
+
     private void readPrefixes(){
         rdf = model.getNsPrefixURI("rdf");
         xsd = model.getNsPrefixURI("xsd");
