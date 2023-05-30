@@ -374,6 +374,11 @@ ast:potGroup1 rdf:type owl:NamedIndividual ,
                                ast:pot2 .
 
 
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump1
+ast:pump1 rdf:type owl:NamedIndividual ;
+          ast:isWateredBy ast:pump1 .
+
+
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf1
 ast:shelf1 rdf:type owl:NamedIndividual ,
                     ast:Shelf ;
