@@ -41,9 +41,7 @@ public class Utils {
 
     public static Map<String, Object> readSchedulerConfig(){
         if (executingJar) {
-            System.out.println(currentPath);
             Path path = Path.of(currentPath);
-            System.out.println(path);
             path = path.resolve("config_scheduler.yml");
             return readConfig(path.toString());
         } else {

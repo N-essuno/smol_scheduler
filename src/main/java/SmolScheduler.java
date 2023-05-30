@@ -74,7 +74,7 @@ public class SmolScheduler {
         if (idPlantsToWater.size() > 0) {
             SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
             List<String> cmds = new ArrayList<>();
-            cmds.add("ls -latr; cd greenhouse_actuator; python3 -m actuator pump 1");
+            cmds.add("cd greenhouse_actuator; python3 -m actuator pump 1");
             sshSender.execCmds(cmds);
         }
     }

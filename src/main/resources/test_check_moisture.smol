@@ -5,8 +5,6 @@ main
     AssetModel assetModel = new AssetModel();
 
     List<Plant> plants = assetModel.getPlants();
-    List<Pot> pots = assetModel.getPots();
-    
 
     print("--------------------------------------------------- Get plants moisture");
 
@@ -67,7 +65,6 @@ main
     breakpoint;
 end
 
-
 class Plant(String plantId, Double idealMoisture)
     // Return last ndvi detection for the plant
     Double getNdvi()
@@ -109,34 +106,6 @@ class Plant(String plantId, Double idealMoisture)
     end
 end
 
-class Pot(String shelfFloor, String groupPosition, String potPosition)
-
-    // Return last moisture detection for the pot
-    Double getMoisture()
-        Double moisture = 0.0;
-        List<Double> influxReturn = null;
-        
-        influxReturn = access(
-            "from(bucket: \"demo\")
-                |> range(start: -30d)
-                |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
-                |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
-                |> filter(fn: (r) => r[\"group_position\"] == %1)
-                |> filter(fn: (r) => r[\"pot_position\"] == %2)
-                |> filter(fn: (r) => r[\"shelf_floor\"] == %3)
-                |> keep(columns: [\"_value\"])
-                |> last()",
-        INFLUXDB("src/main/resources/config_local.yml"),
-        this.groupPosition,
-        this.potPosition,
-        this.shelfFloor);
-
-        Int length = influxReturn.length();
-        moisture = influxReturn.get(0);
-        return moisture;
-    end
-end
-
 class PlantToWater(Int plantId)
 end
 
@@ -144,48 +113,6 @@ end
 * Retrieves data from the asset model and convert it to SMOL objects
 */
 class AssetModel()
-    // get pot instances from the asset model
-    List<Pot> getPots()
-        List<Pot> pots = construct("
-        PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-        SELECT ?shelfFloor ?groupPosition ?potPosition
-        WHERE {
-            ?pot rdf:type ast:Pot ;
-                ast:hasShelfFloor ?shelfFloor ;
-                ast:hasGroupPosition ?groupPosition ;
-                ast:hasPotPosition ?potPosition .
-        }");
-        return pots;
-        // edit query to get new pots
-    end
-
-    // get shelf instances from the asset model
-    List<Shelf> getShelves()
-        List<Shelf> shelves = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor
-            WHERE {
-                ?shelf rdf:type ast:Shelf ;
-                    ast:hasShelfFloor ?shelfFloor .
-            }
-        ");
-        return shelves;
-    end
-
-    // get pump instances from the asset model
-    List<Pump> getPumps()
-        List<Pump> pumps = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor ?groupPosition
-            WHERE {
-                ?pump rdf:type ast:Pump ;
-                    ast:hasShelfFloor ?shelfFloor ;
-                    ast:hasGroupPosition ?groupPosition.
-            }
-        ");
-        return pumps;
-    end
-
     // get plant instances from the asset model
     List<Plant> getPlants()
         List<Plant> plants = construct("
