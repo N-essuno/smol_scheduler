@@ -30,6 +30,20 @@ public class SmolScheduler {
         waterControl();
         System.out.println("\n\n|--------------------| End water control |--------------------|\n\n");
         System.out.println("|----------------------------------------| End run SmolScheduler |----------------------------------------|");
+        //deleteLiftedStateFile();
+    }
+
+    private static void deleteLiftedStateFile() {
+        System.out.println("deleting");
+        try {
+            File liftedState = new File(liftedStateOutputFile);
+            Files.delete(liftedState.toPath());
+            System.out.println("check Deletion");
+            Thread.sleep(5000);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     public static void execSmol() {
@@ -43,13 +57,15 @@ public class SmolScheduler {
         System.out.println("++++++++++++++++++++++ Start generating lifted state... ++++++++++++++++++++++");
         repl.command("dump", "out.ttl");
         System.out.println("++++++++++++++++++++++ End generating lifted state ++++++++++++++++++++++");
-
+        repl.command("exit", "");
         repl.terminate();
     }
 
     private static void waterControl() {
         GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader(liftedStateOutputFile);
         List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
+        // Close model to free resource access
+        greenhouseModelReader.closeModel();
         System.out.println("idPlantsToWater: " + idPlantsToWater);
         startWaterActuator(idPlantsToWater);
     }
