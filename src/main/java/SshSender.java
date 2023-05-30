@@ -56,6 +56,7 @@ public class SshSender {
             }
 
         } catch (JSchException | InterruptedException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
             if (session != null) {

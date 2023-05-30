@@ -12,6 +12,7 @@ main
 
     i = 0;
     Int plantsLength = plants.length();
+    plantsLength = 1;
 
     // For each plant, print plant id, ideal moisture and current moisture got from InfluxDB
     while i < plantsLength do
@@ -74,7 +75,7 @@ class Plant(String plantId, Double idealMoisture)
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"greenhouse_test\")
+            "from(bucket: \"demo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
@@ -93,7 +94,7 @@ class Plant(String plantId, Double idealMoisture)
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"greenhouse_test\")
+            "from(bucket: \"demo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
@@ -116,7 +117,7 @@ class Pot(String shelfFloor, String groupPosition, String potPosition)
         List<Double> influxReturn = null;
         
         influxReturn = access(
-            "from(bucket: \"greenhouse_test\")
+            "from(bucket: \"demo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")

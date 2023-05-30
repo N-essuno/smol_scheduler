@@ -14,7 +14,9 @@ public class Utils {
         .getProtectionDomain()
         .getCodeSource()
         .getLocation()
-        .getPath().replace("smol_scheduler.jar", "");
+        .getPath()
+        .replace("smol_scheduler.jar", "")
+        .replaceFirst("/", "");
 
     public static Map<String, Object> readConfig(String configPath){
         InputStream inputStream;
@@ -39,7 +41,9 @@ public class Utils {
 
     public static Map<String, Object> readSchedulerConfig(){
         if (executingJar) {
+            System.out.println(currentPath);
             Path path = Path.of(currentPath);
+            System.out.println(path);
             path = path.resolve("config_scheduler.yml");
             return readConfig(path.toString());
         } else {
