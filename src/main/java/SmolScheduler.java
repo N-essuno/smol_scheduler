@@ -113,6 +113,7 @@ public class SmolScheduler {
         try {
             return Files.readString(new File(assetModel).toPath());
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

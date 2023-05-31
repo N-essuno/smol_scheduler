@@ -6,8 +6,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Starting Main");
-
+        System.out.println("^^^^^^^^^^^^^^^^^^^ Starting Main");
         // use -nojar flag to run the program from an IDE
         if (args.length > 0 && args[0].equals("-nojar")) {
             Utils.executingJar = false;
@@ -15,7 +14,7 @@ public class Main {
 
         // check if configs are found, throw an exception otherwise
         checkConfigs();
-        System.out.println("Configs checked");
+        System.out.println("^^^^^^^^^^^^^^^^^^^ Configs checked");
 
         // run the scheduler every interval_seconds seconds
         int intervalSeconds = Integer
@@ -24,9 +23,9 @@ public class Main {
                 .get("interval_seconds")
                 .toString()
             );
-        System.out.println("Scheduler interval set to " + intervalSeconds + " seconds");
+        System.out.println("^^^^^^^^^^^^^^^^^^^ Scheduler interval set to " + intervalSeconds + " seconds ");
 
-        System.out.println("Starting scheduler");
+        System.out.println("^^^^^^^^^^^^^^^^^^^ Starting scheduled thread");
         ScheduledExecutorService executorService;
         executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleAtFixedRate(SmolScheduler::run, 0, intervalSeconds, TimeUnit.SECONDS);

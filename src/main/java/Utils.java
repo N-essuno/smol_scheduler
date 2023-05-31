@@ -10,13 +10,7 @@ import java.util.Map;
 public class Utils {
 
     public static boolean executingJar = true;
-    private static final String currentPath = Utils.class
-        .getProtectionDomain()
-        .getCodeSource()
-        .getLocation()
-        .getPath()
-        .replace("smol_scheduler.jar", "")
-        .replaceFirst("/", "");
+    private static final String currentPath = System.getProperty("user.dir");
 
     public static Map<String, Object> readConfig(String configPath){
         InputStream inputStream;
