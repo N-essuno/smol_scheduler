@@ -18,7 +18,7 @@ public class SmolScheduler {
     private static final String greenhouseAssetModelFile = configMap.get("greenhouse_asset_model_file").toString();
     private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
     private static final Settings settings = getSettings();
-    private static final String smolPath = configMap.get("smol_path").toString();;
+    private static final String smolPath = configMap.get("smol_path").toString();
 
     public static void run() {
         System.out.println("|----------------------------------------| Start run SmolScheduler |----------------------------------------|");
@@ -74,7 +74,7 @@ public class SmolScheduler {
         if (idPlantsToWater.size() > 0) {
             SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
             List<String> cmds = new ArrayList<>();
-            cmds.add("cd greenhouse_actuator; python3 -m actuator pump 1");
+            cmds.add("cd greenhouse_actuator; python3 -m actuator pump 2");
             sshSender.execCmds(cmds);
         }
     }

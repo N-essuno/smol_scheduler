@@ -1,16 +1,29 @@
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Map;
 
 public class Utils {
 
     public static boolean executingJar = true;
-    private static final String currentPath = System.getProperty("user.dir");
+    private static final String currentPath;
+
+    // Used to get current working directory
+    static {
+        try {
+            currentPath = new File(Utils.class
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation()
+                .toURI()
+                .getPath())
+                .getParent();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static Map<String, Object> readConfig(String configPath){
         InputStream inputStream;
@@ -36,6 +49,7 @@ public class Utils {
     public static Map<String, Object> readSchedulerConfig(){
         if (executingJar) {
             Path path = Path.of(currentPath);
+            System.out.println(currentPath);
             path = path.resolve("config_scheduler.yml");
             return readConfig(path.toString());
         } else {
