@@ -1,0 +1,9 @@
+test_host: shell.xshellz.com
+test_username: nessuno
+test_password: bollywood@64
+test_port: 22
+
+actuator_host: 169.254.130.43
+actuator_username: lab
+actuator_password: lab
+actuator_port: 22
