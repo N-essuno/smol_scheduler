@@ -1,6 +1,10 @@
 main
     Int i = 0;
+    Int j = 0;
     Plant plant = null;
+    PlantToWater plantToWater = null;
+    // List of plants (ids of plants) that need to be watered
+    List<PlantToWater> plantsToWater = null;
 
     AssetModel assetModel = new AssetModel();
 
@@ -8,11 +12,12 @@ main
 
     print("--------------------------------------------------- Get plants moisture");
 
-    i = 0;
     Int plantsLength = plants.length();
     plantsLength = 1;
 
     // For each plant, print plant id, ideal moisture and current moisture got from InfluxDB
+    // and check moisture
+    i = 0;
     while i < plantsLength do
         plant = plants.get(i);
         Double plantMoisture = plant.getPotMoisture();
@@ -23,21 +28,7 @@ main
         print("moisture: ");
         print(plantMoisture);
         print("----------------------------------------");
-        i = i + 1;
-    end
-
-    print("--------------------------------------------------- Check plants moisture");
-
-    // List of plants (ids of plants) that need to be watered
-    List<PlantToWater> plantsToWater = null;
-
-    // For each plant, check if it needs water. If it does, add it to the list of plants to water
-    i = 0;
-    PlantToWater plantToWater = null;
-
-    while i < plantsLength do
-        plant = plants.get(i);
-        Double plantMoisture = plant.getPotMoisture();
+        // For each plant, check if it needs water. If it does, add it to the list of plants to water
         if (plantMoisture < plant.idealMoisture) then
             plantToWater = new PlantToWater(plant.plantId);
             plantsToWater = new List(plantToWater, plantsToWater);
@@ -62,7 +53,7 @@ class Plant(String plantId, Double idealMoisture)
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("config_local.yml"),
+        INFLUXDB("demo\\config_local.yml"),
         this.plantId);
 
         ndvi = influxReturn.get(0);
@@ -81,7 +72,7 @@ class Plant(String plantId, Double idealMoisture)
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("config_local.yml"),
+        INFLUXDB("demo\\config_local.yml"),
         this.plantId);
 
         moisture = influxReturn.get(0);
