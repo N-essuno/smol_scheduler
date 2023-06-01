@@ -1,5 +1,11 @@
 # Greenhouse SMOL code
 
+To execute a demo of the program type in the shell, from the root of the project:
+
+```shell
+./gradlew demo
+```
+
 This code provides a representation for the different assets we expect in the greenhouse:
 
 - Greenhouse
