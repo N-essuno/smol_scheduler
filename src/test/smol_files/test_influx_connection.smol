@@ -1,7 +1,7 @@
 main
     Double moisture = 0.0;
     List<Double> influxReturn = null;
-    
+
     // uses list because influx queries return lists
     influxReturn = access(
         "from(bucket: \"greenhouse_test\")
@@ -16,7 +16,7 @@ main
     INFLUXDB("config_local.yml"));
     // get first value of list (list contains just one value)
     moisture = influxReturn.get(0);
-    
+
     // print moisture
     print(moisture);
 end

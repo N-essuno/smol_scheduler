@@ -1,12 +1,14 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow'
 }
 
 group 'no.uio'
 
-repositories {
-    mavenCentral()
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 dependencies {
@@ -15,7 +17,7 @@ dependencies {
     // Do not change jena version
     implementation 'org.apache.jena:apache-jena-libs:3.16.0'
     implementation 'org.apache.jena:jena-core:3.16.0'
-    implementation files('lib/smol.jar')
+    implementation 'com.github.eduardz1:SemanticObjects:-19e13a35ca-1'
     implementation group: 'com.jcraft', name: 'jsch', version: '0.1.54'
     implementation 'software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.+:linux-x86_64'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
@@ -36,8 +38,4 @@ jar {
                 'Main-Class': 'Main'
         )
     }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-source" << "17" << "-target" << "17"
 }

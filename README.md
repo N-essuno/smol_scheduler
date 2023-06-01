@@ -1,7 +1,7 @@
 # Greenhouse SMOL code
 
 This code provides a representation for the different assets we expect in the greenhouse:
-- Greenhouse 
+- Greenhouse
 - Pot
 - Shelf
 - Pump

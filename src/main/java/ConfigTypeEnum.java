@@ -1,4 +1,4 @@
 public enum ConfigTypeEnum {
-    TEST,
-    ACTUATOR
+  TEST,
+  ACTUATOR
 }

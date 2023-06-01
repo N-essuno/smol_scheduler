@@ -1,2 +1,15 @@
-rootProject.name = 'smol_scheduler'
+pluginManagement {
+    plugins {
+        id 'com.github.johnrengelman.shadow' version '5.2.0'
+    }
+}
 
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url "https://jitpack.io" } // allows usage of non-published git repos
+    }
+}
+
+rootProject.name = 'smol_scheduler'
