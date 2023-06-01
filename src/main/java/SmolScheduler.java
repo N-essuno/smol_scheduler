@@ -8,6 +8,8 @@ import java.util.Map;
 import no.uio.microobject.main.Settings;
 import no.uio.microobject.runtime.REPL;
 import org.apache.jena.query.ARQ;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
 import org.jetbrains.annotations.NotNull;
 
 public class SmolScheduler {
@@ -33,7 +35,7 @@ public class SmolScheduler {
     System.out.println(
         "\n\n|--------------------| End executing SMOL code |--------------------|\n\n");
     System.out.println("|--------------------| Start water control |--------------------|\n\n");
-    waterControl();
+    // waterControl();
     System.out.println("\n\n|--------------------| End water control |--------------------|\n\n");
     System.out.println(
         "|----------------------------------------| End run SmolScheduler"
@@ -63,10 +65,19 @@ public class SmolScheduler {
     repl.command("auto", "");
 
     System.out.println(
-        "++++++++++++++++++++++ Start generating lifted state... ++++++++++++++++++++++");
-    repl.command("dump", "out.ttl");
-    System.out.println("++++++++++++++++++++++ End generating lifted state ++++++++++++++++++++++");
-    repl.command("exit", "");
+        "++++++++++++++++++++++ Start querying lifted state... ++++++++++++++++++++++");
+    String needWaterQuery = "PREFIX prog: <https://github.com/Edkamb/SemanticObjects/Program#>\n" +
+        "SELECT ?plantId " +
+        "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId}";
+
+    ResultSet plantsToWater = repl.getInterpreter().query(needWaterQuery);
+
+    while (plantsToWater.hasNext()) {
+      QuerySolution plantToWater = plantsToWater.next();
+      System.out.println(plantToWater);
+    }
+
+    System.out.println("++++++++++++++++++++++ End querying lifted state ++++++++++++++++++++++");
     repl.terminate();
   }
 
