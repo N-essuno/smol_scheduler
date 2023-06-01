@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SmolScheduler {
   private static final Map<String, Object> configMap = Utils.readSchedulerConfig();
+
   private static final String liftedStateOutputFile =
       configMap.get("lifted_state_output_file").toString();
   private static final String liftedStateOutputPath =
@@ -23,8 +24,9 @@ public class SmolScheduler {
   private static final String greenhouseAssetModelFile =
       configMap.get("greenhouse_asset_model_file").toString();
   private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
-  private static final Settings settings = getSettings();
   private static final String smolPath = configMap.get("smol_path").toString();
+
+  private static final Settings settings = getSettings();
 
   public static void run() {
     System.out.println(
