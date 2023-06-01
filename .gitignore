@@ -1,9 +1,14 @@
 # Project exclude paths
-/.gradle/
-/build/
-/build/classes/java/main/
+scheduler/src/main/resources/*.yml
+
+# IDE exclude paths
+.vscode/
 .idea/
-/src/main/resources/*.yml
+
+# Build output directories
+.gradle/
+build/
+bin/
 
 # SMOL Lifted state output
-/src/main/kg_output/
+scheduler/src/main/kg_output/

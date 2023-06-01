@@ -1,9 +1,0 @@
-#url: http://localhost:8086
-#token: BN0HsJnDS0pEM20xYY1m0Omq4DbpwNPN-o5hxtyGhWEP95F3ryt0d9VyefOMPhUhXakd2cOGDECJjonRzRUFrg==
-#org: sirius_local
-#bucket: greenhouse_test
-
-url: http://169.254.48.238:8086
-token: C2MP4iqlZ5j6VFCxx1ax9JzXd-8rB7LWCQJHH2Y9xkMRg9_K9hcRQd9VhDam03Wj1Q5hpvwYHtbcnPaBpLuwfA==
-org: sirius_local
-bucket: demo

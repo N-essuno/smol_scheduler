@@ -1,9 +1,0 @@
-test_host: my_host
-test_username: my_username
-test_password: my_password
-test_port: my_port
-
-actuator_host: actuator_host
-actuator_username: actuator_username
-actuator_password: actuator_password
-actuator_port: actuator_port

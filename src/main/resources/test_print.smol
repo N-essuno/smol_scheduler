@@ -1,9 +1,0 @@
-main
-    Int a = 32;
-    print(a);
-    String b = "this_string_variable_should_be_on_newline";
-    print(b);
-    print("plain_string");
-    print(12);
-    print("this_plain_string_should_be_on_newline");
-end
