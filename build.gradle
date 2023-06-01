@@ -35,17 +35,17 @@ assemble.dependsOn shadowJar
 jar {
     manifest {
         attributes(
-                'Main-Class': 'Main'
+                'Main-Class': 'no.uio.scheduler.Main'
         )
     }
 }
 
-task copyJar(type: Copy) {
+tasks.register('copyJar', Copy) {
     from shadowJar
     into 'demo/'
 }
 
-task demo(type: Exec) {
+tasks.register('demo', Exec) {
     dependsOn copyJar
     workingDir 'demo/'
     commandLine 'java', '-jar', 'smol_scheduler.jar'

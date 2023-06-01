@@ -1,5 +1,5 @@
 # Project exclude paths
-scheduler/src/main/resources/*.yml
+src/main/resources/*.yml
 
 # IDE exclude paths
 .vscode/
@@ -12,3 +12,6 @@ bin/
 
 # SMOL Lifted state output
 scheduler/src/main/kg_output/
+
+# DEMO jar
+demo/*.jar

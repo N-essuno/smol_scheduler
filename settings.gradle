@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = 'smol_scheduler'
-include 'scheduler'
