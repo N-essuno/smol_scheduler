@@ -39,3 +39,14 @@ jar {
         )
     }
 }
+
+task copyJar(type: Copy) {
+    from shadowJar
+    into 'demo/'
+}
+
+task demo(type: Exec) {
+    dependsOn copyJar
+    workingDir 'demo/'
+    commandLine 'java', '-jar', 'smol_scheduler.jar'
+}
