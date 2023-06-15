@@ -46,8 +46,7 @@ public class Utils {
 
   public static Map<String, Object> readSchedulerConfig() {
     if (executingJar) {
-      Path path = Path.of(currentPath);
-      path = path.resolve("config_scheduler.yml");
+      Path path = Path.of(currentPath).resolve("config_scheduler.yml");
       return readConfig(path.toString());
     } else {
       return readConfig("src/main/resources/config_scheduler.yml");
@@ -56,21 +55,20 @@ public class Utils {
 
   public static Map<String, Object> readSshConfig() {
     if (executingJar) {
-      Path path = Path.of(currentPath);
-      path = path.resolve("config_ssh.yml");
+      Path path = Path.of(currentPath).resolve("config_ssh.yml");
       return readConfig(path.toString());
     } else {
       return readConfig("src/main/resources/config_ssh.yml");
     }
   }
 
-  public static Map<String, Object> readInfluxConfig() {
-    if (executingJar) {
-      Path path = Path.of(currentPath);
-      path = path.resolve("config_ssh.yml");
-      return readConfig(path.toString());
-    } else {
-      return readConfig("src/main/resources/config_local.yml");
-    }
-  }
+  // TODO: decide if needed
+  //  public static Map<String, Object> readInfluxConfig() {
+  //    if (executingJar) {
+  //      Path path = Path.of(currentPath).resolve("config_ssh.yml");
+  //      return readConfig(path.toString());
+  //    } else {
+  //      return readConfig("src/main/resources/config_local.yml");
+  //    }
+  //  }
 }

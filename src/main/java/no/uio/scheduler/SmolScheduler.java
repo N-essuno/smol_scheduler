@@ -77,6 +77,7 @@ public class SmolScheduler {
 
     while (plantsToWater.hasNext()) {
       QuerySolution plantToWater = plantsToWater.next();
+      // TODO send plantToWater to actuator
       System.out.println(plantToWater);
     }
 
