@@ -21,6 +21,8 @@ dependencies {
     implementation group: 'com.jcraft', name: 'jsch', version: '0.1.54'
     implementation 'software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.+:linux-x86_64'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
+    implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.9.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.15.2'
 }
 
 test {
