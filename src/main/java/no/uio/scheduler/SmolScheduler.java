@@ -86,7 +86,10 @@ public class SmolScheduler {
   }
 
   private static void waterControl() {
-    GreenhouseModelReader greenhouseModelReader = new GreenhouseModelReader(liftedStateOutputFile);
+    // TODO change logic, now not needed to read lifted state, plant to water are given from SPARQL
+    // query result
+    GreenhouseModelReader greenhouseModelReader =
+        new GreenhouseModelReader(liftedStateOutputFile, ModelTypeEnum.SMOL_MODEL);
     List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
     // Close model to free resource access
     greenhouseModelReader.closeModel();
