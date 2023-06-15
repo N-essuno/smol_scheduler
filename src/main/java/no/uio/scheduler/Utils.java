@@ -1,9 +1,14 @@
 package no.uio.scheduler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Map;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.yaml.snakeyaml.Yaml;
 
 public class Utils {
@@ -60,6 +65,36 @@ public class Utils {
     } else {
       return readConfig("src/main/resources/config_ssh.yml");
     }
+  }
+
+  public static INIConfiguration readDataCollectorConfig() {
+    String path;
+    if (executingJar) {
+      path = Path.of(currentPath).resolve("config.ini").toString();
+    } else {
+      path = "src/main/resources/config.ini";
+    }
+
+    INIConfiguration iniConfiguration = new INIConfiguration();
+    try (FileReader fileReader = new FileReader(path)) {
+      iniConfiguration.read(fileReader);
+    } catch (IOException | ConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+
+    return iniConfiguration;
+  }
+
+  public static Map<String, Object> jsonDictToMap(String jsonDict) {
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, Object> map = null;
+    try {
+      map = mapper.readValue(jsonDict, new TypeReference<Map<String, Object>>() {});
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+
+    return map;
   }
 
   // TODO: decide if needed
