@@ -68,7 +68,11 @@ ast:isComposedBy rdf:type owl:ObjectProperty ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#isWateredBy
 ast:isWateredBy rdf:type owl:ObjectProperty ;
-                rdfs:domain ast:PotGroup ;
+                rdfs:domain [ rdf:type owl:Class ;
+                              owl:unionOf ( ast:Pot
+                                            ast:PotGroup
+                                          )
+                            ] ;
                 rdfs:range ast:Pump .
 
 
@@ -98,6 +102,12 @@ ast:hasGroupPosition rdf:type owl:DatatypeProperty ;
 ast:hasHumidity rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Shelf ;
                 rdfs:range ast:percentage .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasHumidityGpioPin
+ast:hasHumidityGpioPin rdf:type owl:DatatypeProperty ;
+                       rdfs:domain ast:Shelf ;
+                       rdfs:range xsd:int .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasIdealMoisture
@@ -133,6 +143,13 @@ ast:hasMoisture rdf:type owl:DatatypeProperty ;
                 rdfs:range ast:percentage .
 
 
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasMoistureAdcChannel
+ast:hasMoistureAdcChannel rdf:type owl:DatatypeProperty ;
+                          rdfs:subPropertyOf owl:topDataProperty ;
+                          rdfs:domain ast:Pot ;
+                          rdfs:range xsd:int .
+
+
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasName
 ast:hasName rdf:type owl:DatatypeProperty ;
             rdfs:domain owl:Thing .
@@ -158,6 +175,13 @@ ast:hasPotPosition rdf:type owl:DatatypeProperty ;
                               ] .
 
 
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasPumpId
+ast:hasPumpId rdf:type owl:DatatypeProperty ;
+              rdfs:subPropertyOf owl:topDataProperty ;
+              rdfs:domain ast:Pump ;
+              rdfs:range xsd:int .
+
+
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasShelfFloor
 ast:hasShelfFloor rdf:type owl:DatatypeProperty ;
                   rdfs:domain [ rdf:type owl:Class ;
@@ -181,6 +205,12 @@ ast:hasShelfFloor rdf:type owl:DatatypeProperty ;
 ast:hasTemperature rdf:type owl:DatatypeProperty ;
                    rdfs:domain ast:Shelf ;
                    rdfs:range xsd:double .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasTemperatureGpioPin
+ast:hasTemperatureGpioPin rdf:type owl:DatatypeProperty ;
+                          rdfs:domain ast:Shelf ;
+                          rdfs:range xsd:int .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasWaterFlow
@@ -349,7 +379,9 @@ ast:greenhouse rdf:type owl:NamedIndividual ,
 ast:pot1 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
          ast:hasPlant ast:basilicum1 ;
+         ast:isWateredBy ast:pump1 ;
          ast:hasGroupPosition "left" ;
+         ast:hasMoistureAdcChannel 1 ;
          ast:hasPotPosition "left" ;
          ast:hasShelfFloor "1"^^xsd:string .
 
@@ -359,6 +391,7 @@ ast:pot2 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
          ast:hasPlant ast:basilicum2 ;
          ast:hasGroupPosition "left"^^xsd:string ;
+         ast:hasMoistureAdcChannel 2 ;
          ast:hasPotPosition "right"^^xsd:string ;
          ast:hasShelfFloor "1"^^xsd:string .
 
@@ -388,13 +421,15 @@ ast:potGroup1 rdf:type owl:NamedIndividual ,
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump1
 ast:pump1 rdf:type owl:NamedIndividual ;
-          ast:isWateredBy ast:pump1 .
+          ast:hasPumpId 1 .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf1
 ast:shelf1 rdf:type owl:NamedIndividual ,
                     ast:Shelf ;
-           ast:hasShelfFloor "1"^^xsd:string .
+           ast:hasHumidityGpioPin 4 ;
+           ast:hasShelfFloor "1"^^xsd:string ;
+           ast:hasTemperatureGpioPin 4 .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf2
