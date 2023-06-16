@@ -3,12 +3,14 @@ package no.uio.scheduler;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import no.uio.microobject.main.Settings;
 import no.uio.microobject.runtime.REPL;
+import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
@@ -25,11 +27,15 @@ public class SmolScheduler {
   private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
   private static final Settings settings = getSettings();
   private static final String smolPath = configMap.get("smol_path").toString();
+  private static long assetModelLastModified = 0;
 
   public static void run() {
     System.out.println(
         "|----------------------------------------| Start run SmolScheduler"
             + " |----------------------------------------|");
+
+    syncAssetModel();
+
     ARQ.init();
     System.out.println(
         "|--------------------| Start executing SMOL code |--------------------|\n\n");
@@ -42,20 +48,6 @@ public class SmolScheduler {
     System.out.println(
         "|----------------------------------------| End run SmolScheduler"
             + " |----------------------------------------|");
-    // deleteLiftedStateFile();
-  }
-
-  private static void deleteLiftedStateFile() {
-    System.out.println("deleting");
-    try {
-      File liftedState = new File(liftedStateOutputFile);
-      Files.delete(liftedState.toPath());
-      System.out.println("check Deletion");
-      Thread.sleep(5000);
-    } catch (IOException | InterruptedException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
   }
 
   public static void execSmol() {
@@ -104,6 +96,37 @@ public class SmolScheduler {
       cmds.add("cd greenhouse_actuator; python3 -m actuator pump 2");
       sshSender.execCmds(cmds);
     }
+  }
+
+  public static void syncAssetModel() {
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+    File assetModelFile = new File(greenhouseAssetModelFile);
+    long lastModified = assetModelFile.lastModified();
+    System.out.println("Asset model current date: " + sdf.format(lastModified));
+    System.out.println("Asset model stored date: " + sdf.format(assetModelLastModified));
+    if (lastModified != assetModelLastModified) {
+      System.out.println("Asset model changed, updating data collector configuration...");
+      assetModelLastModified = lastModified;
+      updateDataCollectorConfig();
+    }
+  }
+
+  private static void updateDataCollectorConfig() {
+    INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
+    INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
+
+    GreenhouseModelReader greenhouseModelReader =
+        new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
+
+    List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
+    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
+
+    List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
+    GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
+
+    Utils.writeDataCollectorConfig(iniConfiguration1, "1");
+    Utils.writeDataCollectorConfig(iniConfiguration2, "2");
   }
 
   @NotNull
