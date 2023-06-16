@@ -28,6 +28,13 @@ public class Utils {
     }
   }
 
+  private static Path schedulerConfigPath = Path.of(currentPath).resolve("config_scheduler.yml");
+  private static Path sshConfigPath = Path.of(currentPath).resolve("config_ssh.yml");
+  private static Path shelf1DataCollectorConfigPath =
+      Path.of(currentPath).resolve("config_shelf_1.ini");
+  private static Path shelf2DataCollectorConfigPath =
+      Path.of(currentPath).resolve("config_shelf_2.ini");
+
   public static Map<String, Object> readConfig(String configPath) {
     InputStream inputStream;
     try {
@@ -51,8 +58,7 @@ public class Utils {
 
   public static Map<String, Object> readSchedulerConfig() {
     if (executingJar) {
-      Path path = Path.of(currentPath).resolve("config_scheduler.yml");
-      return readConfig(path.toString());
+      return readConfig(schedulerConfigPath.toString());
     } else {
       return readConfig("src/main/resources/config_scheduler.yml");
     }
@@ -60,19 +66,29 @@ public class Utils {
 
   public static Map<String, Object> readSshConfig() {
     if (executingJar) {
-      Path path = Path.of(currentPath).resolve("config_ssh.yml");
-      return readConfig(path.toString());
+      return readConfig(sshConfigPath.toString());
     } else {
       return readConfig("src/main/resources/config_ssh.yml");
     }
   }
 
-  public static INIConfiguration readDataCollectorConfig() {
+  // TODO Make this and the config file setup more generic in order to work with any shelf
+  public static INIConfiguration readDataCollectorConfig(String shelfFloor) {
     String path;
     if (executingJar) {
-      path = Path.of(currentPath).resolve("config.ini").toString();
+      path =
+          switch (shelfFloor) {
+            case "1" -> shelf1DataCollectorConfigPath.toString();
+            case "2" -> shelf2DataCollectorConfigPath.toString();
+            default -> throw new RuntimeException("Invalid shelf floor: " + shelfFloor);
+          };
     } else {
-      path = "src/main/resources/config.ini";
+      path =
+          switch (shelfFloor) {
+            case "1" -> "src/main/resources/config_shelf_1.ini";
+            case "2" -> "src/main/resources/config_shelf_2.ini";
+            default -> throw new RuntimeException("Invalid shelf floor: " + shelfFloor);
+          };
     }
 
     INIConfiguration iniConfiguration = new INIConfiguration();
@@ -85,9 +101,36 @@ public class Utils {
     return iniConfiguration;
   }
 
+  // TODO Make this and the config file setup more generic in order to work with any shelf
+  public static void writeDataCollectorConfig(
+      INIConfiguration iniConfiguration, String shelfFloor) {
+    String path;
+    if (executingJar) {
+      path =
+          switch (shelfFloor) {
+            case "1" -> shelf1DataCollectorConfigPath.toString();
+            case "2" -> shelf2DataCollectorConfigPath.toString();
+            default -> throw new RuntimeException("Invalid shelf floor: " + shelfFloor);
+          };
+    } else {
+      path =
+          switch (shelfFloor) {
+            case "1" -> "src/main/resources/config_shelf_1.ini";
+            case "2" -> "src/main/resources/config_shelf_2.ini";
+            default -> throw new RuntimeException("Invalid shelf floor: " + shelfFloor);
+          };
+    }
+
+    try {
+      iniConfiguration.write(new FileWriter(path));
+    } catch (ConfigurationException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public static Map<String, Object> jsonDictToMap(String jsonDict) {
     ObjectMapper mapper = new ObjectMapper();
-    Map<String, Object> map = null;
+    Map<String, Object> map;
     try {
       map = mapper.readValue(jsonDict, new TypeReference<Map<String, Object>>() {});
     } catch (JsonProcessingException e) {
