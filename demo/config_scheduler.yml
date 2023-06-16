@@ -1,13 +1,14 @@
-#smol_path: src/main/resources/test_check_moisture.smol
-#lifted_state_output_path: src/main/kg_output/
-#lifted_state_output_file: src/main/kg_output/out.ttl
-#greenhouse_asset_model_file: src/main/resources/greenhouse.ttl
-#domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
-#interval_seconds: 60
-
 smol_path: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo\test_check_moisture.smol
 lifted_state_output_path: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo
 lifted_state_output_file: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo\out.ttl
 greenhouse_asset_model_file: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo\greenhouse.ttl
 domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
 interval_seconds: 60
+
+# Paths of data collector config files. They are edited locally and then sent to data collectors.
+local_shelf_1_data_collector_config_path: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo\config_shelf_1.ini
+local_shelf_2_data_collector_config_path: C:\Users\Gianl\Desktop\UniTo\internship\greenhouse_twin_project\smol_scheduler\demo\config_shelf_2.ini
+
+# Paths of data collector config files on (remote) data collectors. Files will be sent to these paths.
+shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
+shelf_2_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
