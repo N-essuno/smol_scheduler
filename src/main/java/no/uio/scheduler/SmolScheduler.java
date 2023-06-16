@@ -27,6 +27,15 @@ public class SmolScheduler {
   private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
   private static final Settings settings = getSettings();
   private static final String smolPath = configMap.get("smol_path").toString();
+  private static final String shelf1DataCollectorConfigPath =
+      configMap.get("shelf_1_data_collector_config_path").toString();
+  private static final String shelf2DataCollectorConfigPath =
+      configMap.get("shelf_2_data_collector_config_path").toString();
+  private static final String localShelf1DataCollectorConfigPath =
+      configMap.get("local_shelf_1_data_collector_config_path").toString();
+  private static final String localShelf2DataCollectorConfigPath =
+      configMap.get("local_shelf_2_data_collector_config_path").toString();
+
   private static long assetModelLastModified = 0;
 
   public static void run() {
@@ -53,7 +62,7 @@ public class SmolScheduler {
   public static void execSmol() {
     REPL repl = new REPL(settings);
 
-    repl.command("verbose", "true");
+    repl.command("verbose", "false");
 
     repl.command("read", smolPath);
     repl.command("auto", "");
@@ -109,6 +118,7 @@ public class SmolScheduler {
       System.out.println("Asset model changed, updating data collector configuration...");
       assetModelLastModified = lastModified;
       updateDataCollectorConfig();
+      sendDataCollectorsConfigs();
     }
   }
 
@@ -127,6 +137,14 @@ public class SmolScheduler {
 
     Utils.writeDataCollectorConfig(iniConfiguration1, "1");
     Utils.writeDataCollectorConfig(iniConfiguration2, "2");
+  }
+
+  private static void sendDataCollectorsConfigs() {
+    // TODO change to send to data-collector and add sending to both data-collectors
+    SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
+    System.out.println("||||||||||||||||||| Sending data collector configuration ...");
+    sshSender.sendFile(localShelf1DataCollectorConfigPath, shelf1DataCollectorConfigPath);
+    System.out.println("||||||||||||||||||| Data collector configuration sent");
   }
 
   @NotNull

@@ -40,7 +40,8 @@ public class SshSender {
         channel.connect();
 
         // Wait for the command to be executed.
-        // When the command is executed, the channel is disconnected by the server.
+        // When the command is executed, the channel will be automatically disconnected by the
+        // server.
         while (channel.isConnected()) {
           Thread.sleep(100);
         }
@@ -53,6 +54,38 @@ public class SshSender {
       }
 
     } catch (JSchException | InterruptedException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
+    } finally {
+      if (session != null) {
+        session.disconnect();
+      }
+    }
+  }
+
+  public void sendFile(String localPath, String remotePath) {
+    try {
+      // Set the configuration for the connection and connect
+      session = new JSch().getSession(username, host, port);
+      session.setPassword(password);
+
+      // Automatically accept and store the host key of the remote server without asking
+      // confirmation
+      session.setConfig("StrictHostKeyChecking", "no");
+      session.connect();
+
+      // Create a channel for sending files to the server
+      ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
+      sftpChannel.connect();
+
+      // Send the file
+      sftpChannel.put(localPath, remotePath);
+
+      sftpChannel.disconnect();
+
+    } catch (JSchException e) {
+      e.printStackTrace();
+    } catch (SftpException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
     } finally {
@@ -89,6 +122,12 @@ public class SshSender {
         username = configMap.get("actuator_username").toString();
         password = configMap.get("actuator_password").toString();
         port = Integer.parseInt(configMap.get("actuator_port").toString());
+        break;
+      case DATA_COLLECTOR_1:
+        host = configMap.get("shelf_1_data_collector_host").toString();
+        username = configMap.get("shelf_1_data_collector_username").toString();
+        password = configMap.get("shelf_1_data_collector_password").toString();
+        port = Integer.parseInt(configMap.get("shelf_1_data_collector_port").toString());
         break;
       default:
         System.out.println("Config type not found");
