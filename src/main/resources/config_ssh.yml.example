@@ -7,3 +7,8 @@ actuator_host: actuator_host
 actuator_username: actuator_username
 actuator_password: actuator_password
 actuator_port: actuator_port
+
+shelf_1_data_collector__host: 169.254.48.238
+shelf_1_data_collector__username: lab
+shelf_1_data_collector__password: lab
+shelf_1_data_collector__port: 22

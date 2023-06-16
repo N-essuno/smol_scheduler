@@ -2,3 +2,8 @@ actuator_host: 169.254.130.43
 actuator_username: lab
 actuator_password: lab
 actuator_port: 22
+
+shelf_1_data_collector_host: 169.254.48.238
+shelf_1_data_collector_username: lab
+shelf_1_data_collector_password: lab
+shelf_1_data_collector_port: 22
