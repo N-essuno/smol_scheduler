@@ -1,5 +1,6 @@
 # Project exclude paths
 src/main/resources/*.yml
+src/main/resources/*.ini
 
 # IDE exclude paths
 .vscode/
