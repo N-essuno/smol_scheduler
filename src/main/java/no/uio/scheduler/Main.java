@@ -1,12 +1,10 @@
 package no.uio.scheduler;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration2.INIConfiguration;
-import org.apache.commons.configuration2.SubnodeConfiguration;
 
 public class Main {
 
@@ -17,37 +15,50 @@ public class Main {
       Utils.executingJar = false;
     }
 
-    // mainProgram(args);
+    mainProgram();
+    // randomTest();
 
+  }
+
+  public static void randomTest() {
     // TODO remove test code below after usage and implement config file writing
     System.out.println(
         "-------------------------------------------------------------------------------------");
 
-    INIConfiguration iniConfiguration = Utils.readDataCollectorConfig();
-    SubnodeConfiguration pots = iniConfiguration.getSection("pots");
-    pots.getKeys()
-        .forEachRemaining(
-            key -> {
-              String jsonPot = pots.getString(key);
-              Map<String, Object> potMap = Utils.jsonDictToMap(jsonPot);
-              for (Map.Entry<String, Object> entry : potMap.entrySet()) {
-                System.out.println(entry.getKey() + " : " + entry.getValue());
-              }
-            });
+    INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
+    INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
 
-    System.out.println("|||||||| SPARQL QUERY ||||||||");
+    System.out.println("\n\n|||||||| SPARQL QUERY ||||||||");
     String greenhouseAssetModelFile =
         Utils.readSchedulerConfig().get("greenhouse_asset_model_file").toString();
+
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
-    List<String> jsonPots = greenhouseModelReader.getPots();
-    System.out.println(jsonPots);
+
+    List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
+    System.out.println("Shelf1 Json Pots: " + shelf1JsonPots);
+    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
+
+    System.out.println("*********************** CONFIG 1");
+    GreenhouseINIManager.printFile(iniConfiguration1);
+
+    List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
+    System.out.println("Shelf2 Json Pots: " + shelf2JsonPots);
+    GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
+
+    System.out.println("*********************** CONFIG 2");
+    GreenhouseINIManager.printFile(iniConfiguration2);
+
+    SmolScheduler.syncAssetModel();
+
+    Utils.writeDataCollectorConfig(iniConfiguration1, "1");
+    Utils.writeDataCollectorConfig(iniConfiguration2, "2");
 
     System.out.println(
         "-------------------------------------------------------------------------------------");
   }
 
-  private static void mainProgram(String[] args) {
+  private static void mainProgram() {
     System.out.println("^^^^^^^^^^^^^^^^^^^ Starting Main");
 
     // check if configs are found, throw an exception otherwise

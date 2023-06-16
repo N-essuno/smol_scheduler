@@ -44,7 +44,7 @@ public class GreenhouseModelReader {
     return idPlantsToWater;
   }
 
-  public List<String> getPots() {
+  public List<String> getShelfPots(String shelfFloor) {
     List<String> jsonPotList = new ArrayList<>();
 
     String queryString =
@@ -55,9 +55,11 @@ public class GreenhouseModelReader {
             + "PREFIX ast:"
             + " <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>\n"
             + "\n"
-            + "SELECT ?shelf ?groupPos ?potPos ?channel ?plantId WHERE { \n"
+            + "SELECT ?groupPos ?potPos ?channel ?plantId WHERE { \n"
             + "\t?pot rdf:type ast:Pot ;\n"
-            + "\t\tast:hasShelfFloor ?shelf ;\n"
+            + "\t\tast:hasShelfFloor \""
+            + shelfFloor
+            + "\" ;\n"
             + "\t\tast:hasPotPosition ?potPos ;\n"
             + "\t\tast:hasGroupPosition ?groupPos ;\n"
             + "\t\tast:hasMoistureAdcChannel ?channel ;\n"
@@ -71,7 +73,7 @@ public class GreenhouseModelReader {
       ResultSet results = qexec.execSelect();
       while (results.hasNext()) {
         QuerySolution soln = results.nextSolution();
-        String shelf = soln.get("?shelf").asLiteral().toString();
+        String shelf = shelfFloor;
         String groupPos = soln.get("?groupPos").asLiteral().toString();
         String potPos = soln.get("?potPos").asLiteral().toString();
         int channel = soln.get("?channel").asLiteral().getInt();
