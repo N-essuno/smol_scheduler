@@ -4,7 +4,10 @@ import java.util.List;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 
-/** */
+/**
+ * Class providing methods for managing INI files. In particular managing INI configuration files
+ * used by the Data Collectors.
+ */
 public class GreenhouseINIManager {
   public static void overwriteSection(
       INIConfiguration iniConfiguration, String section, String keyStart, List<String> values) {
