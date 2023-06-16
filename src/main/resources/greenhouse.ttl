@@ -177,9 +177,7 @@ ast:hasPotPosition rdf:type owl:DatatypeProperty ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasPumpId
 ast:hasPumpId rdf:type owl:DatatypeProperty ;
-              rdfs:subPropertyOf owl:topDataProperty ;
-              rdfs:domain ast:Pump ;
-              rdfs:range xsd:int .
+              rdfs:subPropertyOf owl:topDataProperty .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasShelfFloor
@@ -399,7 +397,10 @@ ast:pot2 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pot3
 ast:pot3 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
+         ast:hasPlant ast:stemor1 ;
+         ast:isWateredBy ast:pump2 ;
          ast:hasGroupPosition "left"^^xsd:string ;
+         ast:hasMoistureAdcChannel "1"^^xsd:string ;
          ast:hasPotPosition "left"^^xsd:string ;
          ast:hasShelfFloor "2"^^xsd:string .
 
@@ -407,7 +408,10 @@ ast:pot3 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pot4
 ast:pot4 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
+         ast:hasPlant ast:stemor2 ;
+         ast:isWateredBy ast:pump2 ;
          ast:hasGroupPosition "left"^^xsd:string ;
+         ast:hasMoistureAdcChannel "2"^^xsd:string ;
          ast:hasPotPosition "right"^^xsd:string ;
          ast:hasShelfFloor "2"^^xsd:string .
 
@@ -420,8 +424,13 @@ ast:potGroup1 rdf:type owl:NamedIndividual ,
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump1
-ast:pump1 rdf:type owl:NamedIndividual ;
-          ast:hasPumpId 1 .
+ast:pump1 rdf:type owl:NamedIndividual ,
+                   ast:Pump .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump2
+ast:pump2 rdf:type owl:NamedIndividual ,
+                   ast:Pump .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf1
@@ -436,6 +445,18 @@ ast:shelf1 rdf:type owl:NamedIndividual ,
 ast:shelf2 rdf:type owl:NamedIndividual ,
                     ast:Shelf ;
            ast:hasShelfFloor "2"^^xsd:string .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor1
+ast:stemor1 rdf:type owl:NamedIndividual ;
+            ast:hasIdealMoisture "40"^^xsd:string ;
+            ast:hasPlantId "3"^^xsd:string .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor2
+ast:stemor2 rdf:type owl:NamedIndividual ;
+            ast:hasIdealMoisture "40"^^xsd:string ;
+            ast:hasPlantId "4"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#waterTank
