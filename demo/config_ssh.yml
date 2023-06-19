@@ -7,3 +7,8 @@ shelf_1_data_collector_host: 169.254.48.238
 shelf_1_data_collector_username: lab
 shelf_1_data_collector_password: lab
 shelf_1_data_collector_port: 22
+
+shelf_2_data_collector_host: 000.000.00.000
+shelf_2_data_collector_username: lab
+shelf_2_data_collector_password: lab
+shelf_2_data_collector_port: 22
