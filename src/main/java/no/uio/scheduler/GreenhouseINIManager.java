@@ -28,6 +28,16 @@ public class GreenhouseINIManager {
     }
   }
 
+  public static void overwriteSection(
+      INIConfiguration iniConfiguration, String section, String keyStart, String value) {
+
+    // delete all properties in section
+    iniConfiguration.clearTree(section);
+
+    String key = section + "." + keyStart + "_" + "1";
+    iniConfiguration.addProperty(key, value);
+  }
+
   public static void printSection(SubnodeConfiguration section) {
     Utils.printMessage("\t INI SECTION: " + section.getRootElementName(), false);
     section

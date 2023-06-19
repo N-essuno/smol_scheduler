@@ -59,7 +59,7 @@ public class GreenhouseModelReader {
             + "\t?pot rdf:type ast:Pot ;\n"
             + "\t\tast:hasShelfFloor \""
             + shelfFloor
-            + "\" ;\n"
+            + "\"^^xsd:string ;\n"
             + "\t\tast:hasPotPosition ?potPos ;\n"
             + "\t\tast:hasGroupPosition ?groupPos ;\n"
             + "\t\tast:hasMoistureAdcChannel ?channel ;\n"
@@ -111,7 +111,6 @@ public class GreenhouseModelReader {
 
   public List<String> getShelf(String shelfFloor) {
     List<String> jsonShelfList = new ArrayList<>();
-
     String queryString =
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
             + "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
@@ -123,7 +122,7 @@ public class GreenhouseModelReader {
             + "\t?s a ast:Shelf ;\n"
             + "\t\tast:hasShelfFloor \""
             + shelfFloor
-            + "\" ;\n"
+            + "\"^^xsd:string ;\n"
             + "\t\tast:hasHumidityGpioPin ?humidityGpioPin;\n"
             + "\t\tast:hasTemperatureGpioPin ?temperatureGpioPin .\n"
             + "}";
@@ -135,8 +134,8 @@ public class GreenhouseModelReader {
       while (results.hasNext()) {
         QuerySolution soln = results.nextSolution();
         String shelf = shelfFloor;
-        String humidityGpioPin = soln.get("?humidityGpioPin").asLiteral().toString();
-        String temperatureGpioPin = soln.get("?temperatureGpioPin").asLiteral().toString();
+        int humidityGpioPin = soln.get("?humidityGpioPin").asLiteral().getInt();
+        int temperatureGpioPin = soln.get("?temperatureGpioPin").asLiteral().getInt();
 
         String jsonShelf =
             "{"
@@ -145,13 +144,9 @@ public class GreenhouseModelReader {
                 + shelf
                 + "\""
                 + ", \"humidity_gpio_pin\":"
-                + "\""
                 + humidityGpioPin
-                + "\""
                 + ", \"temperature_gpio_pin\":"
-                + "\""
                 + temperatureGpioPin
-                + "\""
                 + "}";
         jsonShelfList.add(jsonShelf);
       }
@@ -160,6 +155,42 @@ public class GreenhouseModelReader {
     }
 
     return jsonShelfList;
+  }
+
+  public List<String> getShelfPlants(String shelfFloor) {
+    List<String> jsonPlantList = new ArrayList<>();
+    String queryString =
+        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            + "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
+            + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            + "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+            + "PREFIX ast:"
+            + " <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>\n"
+            + "SELECT ?plantId WHERE { \n"
+            + "\t?p rdf:type ast:Pot ;\n"
+            + "\t\tast:hasPlant ?plant ;\n"
+            + "\t\tast:hasShelfFloor \""
+            + shelfFloor
+            + "\"^^xsd:string .\n"
+            + "\t?plant ast:hasPlantId ?plantId .\n"
+            + "}";
+
+    Query query = QueryFactory.create(queryString);
+    QueryExecution qexec = QueryExecutionFactory.create(query, model);
+    try {
+      ResultSet results = qexec.execSelect();
+      while (results.hasNext()) {
+        QuerySolution soln = results.nextSolution();
+        String plantId = soln.get("?plantId").asLiteral().toString();
+
+        String jsonPot = "{\"plant_id\":" + "\"" + plantId + "\"" + "}";
+        jsonPlantList.add(jsonPot);
+      }
+    } finally {
+      qexec.close();
+    }
+
+    return jsonPlantList;
   }
 
   public void closeModel() {

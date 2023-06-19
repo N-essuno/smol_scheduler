@@ -129,13 +129,32 @@ public class SmolScheduler {
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
-    // get shelf 1 and 2 pots from asset model. Pots are stored as JSON strings
+    // get shelves 1 and 2 from asset model, including Raspberry connection mapping.
+    // Shelves are stored as JSON strings
+    List<String> shelf1Json = greenhouseModelReader.getShelf("1");
+    List<String> shelf2Json = greenhouseModelReader.getShelf("2");
+
+    // get pots on shelf 1 and 2 from asset model, including Raspberry connection mapping.
+    // Pots are stored as JSON strings
     List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
     List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
+
+    // get plants on shelf 1 and 2 from asset model.
+    // Plants are stored as JSON strings
+    List<String> shelf1JsonPlants = greenhouseModelReader.getShelfPlants("1");
+    List<String> shelf2JsonPlants = greenhouseModelReader.getShelfPlants("2");
+
+    // overwrite shelves section in data collector INI configuration files
+    GreenhouseINIManager.overwriteSection(iniConfiguration1, "shelves", "shelf", shelf1Json);
+    GreenhouseINIManager.overwriteSection(iniConfiguration2, "shelves", "shelf", shelf2Json);
 
     // overwrite pots section in data collector INI configuration files
     GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
     GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
+
+    // overwrite plants section in data collector INI configuration files
+    GreenhouseINIManager.overwriteSection(iniConfiguration1, "plants", "plant", shelf1JsonPlants);
+    GreenhouseINIManager.overwriteSection(iniConfiguration2, "plants", "plant", shelf2JsonPlants);
 
     // write data collector configuration files
     Utils.writeDataCollectorConfig(iniConfiguration1, "1");
