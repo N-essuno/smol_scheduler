@@ -39,24 +39,21 @@ public class SmolScheduler {
   private static long assetModelLastModified = 0;
 
   public static void run() {
-    System.out.println(
-        "|----------------------------------------| Start run SmolScheduler"
-            + " |----------------------------------------|");
+    Utils.printMessage("Start run SmolScheduler", false);
 
     syncAssetModel();
 
     ARQ.init();
-    System.out.println(
-        "|--------------------| Start executing SMOL code |--------------------|\n\n");
+
+    Utils.printMessage("Start executing SMOL code", false);
     execSmol();
-    System.out.println(
-        "\n\n|--------------------| End executing SMOL code |--------------------|\n\n");
-    System.out.println("|--------------------| Start water control |--------------------|\n\n");
+    Utils.printMessage("\n\nEnd executing SMOL code", false);
+
+    Utils.printMessage("Start water control", false);
     // waterControl();
-    System.out.println("\n\n|--------------------| End water control |--------------------|\n\n");
-    System.out.println(
-        "|----------------------------------------| End run SmolScheduler"
-            + " |----------------------------------------|");
+    Utils.printMessage("\n\nEnd water control", false);
+
+    Utils.printMessage("\n\nEnd run SmolScheduler", false);
   }
 
   public static void execSmol() {
@@ -67,8 +64,7 @@ public class SmolScheduler {
     repl.command("read", smolPath);
     repl.command("auto", "");
 
-    System.out.println(
-        "++++++++++++++++++++++ Start querying lifted state... ++++++++++++++++++++++");
+    Utils.printMessage("Start querying lifted state...", true);
     String needWaterQuery =
         "PREFIX prog: <https://github.com/Edkamb/SemanticObjects/Program#>\n"
             + "SELECT ?plantId "
@@ -82,7 +78,7 @@ public class SmolScheduler {
       System.out.println(plantToWater);
     }
 
-    System.out.println("++++++++++++++++++++++ End querying lifted state ++++++++++++++++++++++");
+    Utils.printMessage("End querying lifted state", true);
     repl.terminate();
   }
 
@@ -92,7 +88,7 @@ public class SmolScheduler {
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(liftedStateOutputFile, ModelTypeEnum.SMOL_MODEL);
     List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
-    // Close model to free resource access
+    // close model to free resource access
     greenhouseModelReader.closeModel();
     System.out.println("idPlantsToWater: " + idPlantsToWater);
     startWaterActuator(idPlantsToWater);
@@ -112,10 +108,12 @@ public class SmolScheduler {
 
     File assetModelFile = new File(greenhouseAssetModelFile);
     long lastModified = assetModelFile.lastModified();
-    System.out.println("Asset model current date: " + sdf.format(lastModified));
-    System.out.println("Asset model stored date: " + sdf.format(assetModelLastModified));
-    if (lastModified != assetModelLastModified) {
-      System.out.println("Asset model changed, updating data collector configuration...");
+    Utils.printMessage("Asset model current date: " + sdf.format(lastModified), false);
+    Utils.printMessage("Asset model stored date: " + sdf.format(assetModelLastModified), false);
+
+    // check if asset model has been modified, then update data collector configuration and send it
+    if (lastModified > assetModelLastModified) {
+      Utils.printMessage("Asset model changed, updating data collector configuration...", false);
       assetModelLastModified = lastModified;
       updateDataCollectorConfig();
       sendDataCollectorsConfigs();
@@ -123,28 +121,36 @@ public class SmolScheduler {
   }
 
   private static void updateDataCollectorConfig() {
+    // read data collectors configurations from files
     INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
     INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
 
+    // create model reader to read asset model
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
+    // get shelf 1 and 2 pots from asset model. Pots are stored as JSON strings
     List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
-    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
-
     List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
+
+    // overwrite pots section in data collector INI configuration files
+    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
     GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
 
+    // write data collector configuration files
     Utils.writeDataCollectorConfig(iniConfiguration1, "1");
     Utils.writeDataCollectorConfig(iniConfiguration2, "2");
   }
 
   private static void sendDataCollectorsConfigs() {
-    // TODO change to send to data-collector and add sending to both data-collectors
+    // TODO change config files to send to data-collectors
     SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
-    System.out.println("||||||||||||||||||| Sending data collector configuration ...");
+
+    Utils.printMessage("Sending data collector configuration...", false);
+    // send local data collector configuration files to remote data-collectors
     sshSender.sendFile(localShelf1DataCollectorConfigPath, shelf1DataCollectorConfigPath);
-    System.out.println("||||||||||||||||||| Data collector configuration sent");
+    sshSender.sendFile(localShelf2DataCollectorConfigPath, shelf2DataCollectorConfigPath);
+    Utils.printMessage("Data collector configuration sent", false);
   }
 
   @NotNull

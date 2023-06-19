@@ -59,19 +59,18 @@ public class Main {
   }
 
   private static void mainProgram() {
-    System.out.println("^^^^^^^^^^^^^^^^^^^ Starting Main");
+    Utils.printMessage("Starting Main", false);
 
     // check if configs are found, throw an exception otherwise
     checkConfigs();
-    System.out.println("^^^^^^^^^^^^^^^^^^^ Configs checked");
+    Utils.printMessage("Configs checked", false);
 
     // run the scheduler every interval_seconds seconds
     int intervalSeconds =
         Integer.parseInt(Utils.readSchedulerConfig().get("interval_seconds").toString());
-    System.out.println(
-        "^^^^^^^^^^^^^^^^^^^ Scheduler interval set to " + intervalSeconds + " seconds ");
+    Utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
-    System.out.println("^^^^^^^^^^^^^^^^^^^ Starting scheduled thread");
+    Utils.printMessage("Starting scheduled thread", false);
     ScheduledExecutorService executorService;
     executorService = Executors.newSingleThreadScheduledExecutor();
     executorService.scheduleAtFixedRate(SmolScheduler::run, 0, intervalSeconds, TimeUnit.SECONDS);

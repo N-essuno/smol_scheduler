@@ -21,26 +21,26 @@ public class SshSender {
   public void execCmds(List<String> cmdList) {
     try {
       ChannelExec channel;
-      // Set the configuration for the connection and connect
+      // set the configuration for the connection and connect
       session = new JSch().getSession(username, host, port);
       session.setPassword(password);
-      // Automatically accept and store the host key of the remote server without asking
+      // automatically accept and store the host key of the remote server without asking
       // confirmation
       session.setConfig("StrictHostKeyChecking", "no");
       session.connect();
 
       for (String cmd : cmdList) {
-        // Create a channel for executing commands on the server and set the command
+        // create a channel for executing commands on the server and set the command
         channel = (ChannelExec) session.openChannel("exec");
         channel.setCommand(cmd);
 
-        // Set the output stream from the channel in order to get the output of the executed command
+        // set the output stream from the channel in order to get the output of the executed command
         ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
         channel.setOutputStream(responseStream);
         channel.connect();
 
-        // Wait for the command to be executed.
-        // When the command is executed, the channel will be automatically disconnected by the
+        // wait for the command to be executed.
+        // when the command is executed, the channel will be automatically disconnected by the
         // server.
         while (channel.isConnected()) {
           Thread.sleep(100);
@@ -48,7 +48,7 @@ public class SshSender {
 
         printResult(cmd, responseStream.toString());
 
-        // Channel should be already disconnected, but just in case
+        // channel should be already disconnected, but just in case
 
         channel.disconnect();
       }
@@ -65,20 +65,20 @@ public class SshSender {
 
   public void sendFile(String localPath, String remotePath) {
     try {
-      // Set the configuration for the connection and connect
+      // set the configuration for the connection and connect
       session = new JSch().getSession(username, host, port);
       session.setPassword(password);
 
-      // Automatically accept and store the host key of the remote server without asking
+      // automatically accept and store the host key of the remote server without asking
       // confirmation
       session.setConfig("StrictHostKeyChecking", "no");
       session.connect();
 
-      // Create a channel for sending files to the server
+      // create a channel for sending files to the server
       ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
       sftpChannel.connect();
 
-      // Send the file
+      // send the file
       sftpChannel.put(localPath, remotePath);
 
       sftpChannel.disconnect();
@@ -96,9 +96,9 @@ public class SshSender {
   }
 
   private void printResult(String cmd, String response) {
-    System.out.println("|*************| SSH: Executed command: " + cmd + " |*************|");
+    Utils.printMessage("|*************| SSH: Executed command: " + cmd + " |*************|", false);
     System.out.println(response);
-    System.out.println("|********************************************************|");
+    Utils.printMessage("|********************************************************|", false);
   }
 
   public void readConfig() {
@@ -111,26 +111,31 @@ public class SshSender {
       readConfig();
     }
     switch (configType) {
-      case TEST:
+      case TEST -> {
         host = configMap.get("test_host").toString();
         username = configMap.get("test_username").toString();
         password = configMap.get("test_password").toString();
         port = Integer.parseInt(configMap.get("test_port").toString());
-        break;
-      case ACTUATOR:
+      }
+      case ACTUATOR -> {
         host = configMap.get("actuator_host").toString();
         username = configMap.get("actuator_username").toString();
         password = configMap.get("actuator_password").toString();
         port = Integer.parseInt(configMap.get("actuator_port").toString());
-        break;
-      case DATA_COLLECTOR_1:
+      }
+      case DATA_COLLECTOR_1 -> {
         host = configMap.get("shelf_1_data_collector_host").toString();
         username = configMap.get("shelf_1_data_collector_username").toString();
         password = configMap.get("shelf_1_data_collector_password").toString();
         port = Integer.parseInt(configMap.get("shelf_1_data_collector_port").toString());
-        break;
-      default:
-        System.out.println("Config type not found");
+      }
+      case DATA_COLLECTOR_2 -> {
+        host = configMap.get("shelf_2_data_collector_host").toString();
+        username = configMap.get("shelf_2_data_collector_username").toString();
+        password = configMap.get("shelf_2_data_collector_password").toString();
+        port = Integer.parseInt(configMap.get("shelf_2_data_collector_port").toString());
+      }
+      default -> System.out.println("Config type not found");
     }
   }
 }

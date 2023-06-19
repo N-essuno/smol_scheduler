@@ -78,35 +78,88 @@ public class GreenhouseModelReader {
         String potPos = soln.get("?potPos").asLiteral().toString();
         int channel = soln.get("?channel").asLiteral().getInt();
         String plantId = soln.get("?plantId").asLiteral().toString();
-        StringBuilder jsonPot = new StringBuilder();
-        jsonPot
-            .append("{")
-            .append("\"shelf_floor\":")
-            .append("\"")
-            .append(shelf)
-            .append("\"")
-            .append(", \"group_position\":")
-            .append("\"")
-            .append(groupPos)
-            .append("\"")
-            .append(", \"pot_position\":")
-            .append("\"")
-            .append(potPos)
-            .append("\"")
-            .append(", \"moisture_adc_channel\":")
-            .append(channel)
-            .append(", \"plant_id\":")
-            .append("\"")
-            .append(plantId)
-            .append("\"")
-            .append("}");
-        jsonPotList.add(jsonPot.toString());
+
+        String jsonPot =
+            "{"
+                + "\"shelf_floor\":"
+                + "\""
+                + shelf
+                + "\""
+                + ", \"group_position\":"
+                + "\""
+                + groupPos
+                + "\""
+                + ", \"pot_position\":"
+                + "\""
+                + potPos
+                + "\""
+                + ", \"moisture_adc_channel\":"
+                + channel
+                + ", \"plant_id\":"
+                + "\""
+                + plantId
+                + "\""
+                + "}";
+        jsonPotList.add(jsonPot);
       }
     } finally {
       qexec.close();
     }
 
     return jsonPotList;
+  }
+
+  public List<String> getShelf(String shelfFloor) {
+    List<String> jsonShelfList = new ArrayList<>();
+
+    String queryString =
+        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            + "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
+            + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            + "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+            + "PREFIX ast:"
+            + " <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>\n"
+            + "SELECT ?shelfFloor ?humidityGpioPin ?temperatureGpioPin WHERE { \n"
+            + "\t?s a ast:Shelf ;\n"
+            + "\t\tast:hasShelfFloor \""
+            + shelfFloor
+            + "\" ;\n"
+            + "\t\tast:hasHumidityGpioPin ?humidityGpioPin;\n"
+            + "\t\tast:hasTemperatureGpioPin ?temperatureGpioPin .\n"
+            + "}";
+
+    Query query = QueryFactory.create(queryString);
+    QueryExecution qexec = QueryExecutionFactory.create(query, model);
+    try {
+      ResultSet results = qexec.execSelect();
+      while (results.hasNext()) {
+        QuerySolution soln = results.nextSolution();
+        String shelf = shelfFloor;
+        String humidityGpioPin = soln.get("?humidityGpioPin").asLiteral().toString();
+        String temperatureGpioPin = soln.get("?temperatureGpioPin").asLiteral().toString();
+
+        String jsonShelf =
+            "{"
+                + "\"shelf_floor\":"
+                + "\""
+                + shelf
+                + "\""
+                + ", \"humidity_gpio_pin\":"
+                + "\""
+                + humidityGpioPin
+                + "\""
+                + ", \"temperature_gpio_pin\":"
+                + "\""
+                + temperatureGpioPin
+                + "\""
+                + "}";
+        jsonShelfList.add(jsonShelf);
+      }
+    } finally {
+      qexec.close();
+    }
+
+    return jsonShelfList;
   }
 
   public void closeModel() {

@@ -35,6 +35,7 @@ public class Utils {
   private static Path shelf2DataCollectorConfigPath =
       Path.of(currentPath).resolve("config_shelf_2.ini");
 
+  /** Read configuration files formatted as YAML and return a key-value Map. */
   public static Map<String, Object> readConfig(String configPath) {
     InputStream inputStream;
     try {
@@ -101,7 +102,8 @@ public class Utils {
     return iniConfiguration;
   }
 
-  // TODO Make this and the config file setup more generic in order to work with any shelf
+  // TODO Improvement: make this and the config file setup more generic in order to work with any
+  // shelf
   public static void writeDataCollectorConfig(
       INIConfiguration iniConfiguration, String shelfFloor) {
     String path;
@@ -138,6 +140,14 @@ public class Utils {
     }
 
     return map;
+  }
+
+  public static void printMessage(String message, boolean runningSmol) {
+    if (runningSmol) {
+      System.out.println("SMOL-EXEC>" + message);
+    } else {
+      System.out.println("SCHEDULER-OUT>" + message);
+    }
   }
 
   // TODO: decide if needed
