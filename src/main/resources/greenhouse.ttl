@@ -444,7 +444,9 @@ ast:shelf1 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf2
 ast:shelf2 rdf:type owl:NamedIndividual ,
                     ast:Shelf ;
-           ast:hasShelfFloor "2"^^xsd:string .
+           ast:hasHumidityGpioPin 4 ;
+           ast:hasShelfFloor "2"^^xsd:string ;
+           ast:hasTemperatureGpioPin 4 .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor1
