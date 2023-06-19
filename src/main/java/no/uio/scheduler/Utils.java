@@ -144,9 +144,9 @@ public class Utils {
 
   public static void printMessage(String message, boolean runningSmol) {
     if (runningSmol) {
-      System.out.println("SMOL-EXEC>" + message);
+      System.out.println("SMOL-EXEC> " + message);
     } else {
-      System.out.println("SCHEDULER-OUT>" + message);
+      System.out.println("SCHEDULER-OUT> " + message);
     }
   }
 
