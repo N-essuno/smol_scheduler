@@ -45,15 +45,15 @@ public class SmolScheduler {
 
     ARQ.init();
 
-    Utils.printMessage("Start executing SMOL code", false);
+    Utils.printMessage("Start executing SMOL code\n", false);
     execSmol();
-    Utils.printMessage("\n\nEnd executing SMOL code", false);
+    Utils.printMessage("End executing SMOL code", false);
 
-    Utils.printMessage("Start water control", false);
+    Utils.printMessage("Start water control\n", false);
     // waterControl();
-    Utils.printMessage("\n\nEnd water control", false);
+    Utils.printMessage("End water control", false);
 
-    Utils.printMessage("\n\nEnd run SmolScheduler", false);
+    Utils.printMessage("End run SmolScheduler", false);
   }
 
   public static void execSmol() {
@@ -84,7 +84,7 @@ public class SmolScheduler {
 
   private static void waterControl() {
     // TODO change logic, now not needed to read lifted state, plant to water are given from SPARQL
-    // query result
+    //  query result
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(liftedStateOutputFile, ModelTypeEnum.SMOL_MODEL);
     List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();

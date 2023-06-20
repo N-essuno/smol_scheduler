@@ -1,5 +1,6 @@
 package no.uio.scheduler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -70,10 +71,27 @@ public class Main {
         Integer.parseInt(Utils.readSchedulerConfig().get("interval_seconds").toString());
     Utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
+    // do first sync of configuration and start data-collectors
+    Utils.printMessage("Starting data-collectors", false);
+    SmolScheduler.syncAssetModel();
+    startDataCollectors();
+
+    // start SMOL scheduler
     Utils.printMessage("Starting scheduled thread", false);
     ScheduledExecutorService executorService;
     executorService = Executors.newSingleThreadScheduledExecutor();
     executorService.scheduleAtFixedRate(SmolScheduler::run, 0, intervalSeconds, TimeUnit.SECONDS);
+  }
+
+  private static void startDataCollectors() {
+    SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
+    List<String> cmds = new ArrayList<>();
+    cmds.add("cd influx_greenhouse/greenhouse-data-collector; python3 -m collector");
+
+    // exec start command for data collectors of shelf 1 and 2
+    sshSender.execCmds(cmds);
+    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
+    sshSender.execCmds(cmds);
   }
 
   private static void checkConfigs() {
