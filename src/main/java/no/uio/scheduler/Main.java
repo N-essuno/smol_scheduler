@@ -71,9 +71,11 @@ public class Main {
         Integer.parseInt(Utils.readSchedulerConfig().get("interval_seconds").toString());
     Utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
-    // do first sync of configuration and start data-collectors
+    // do first sync of configuration
     Utils.printMessage("Starting data-collectors", false);
     SmolScheduler.syncAssetModel();
+
+    // start data collectors
     startDataCollectors();
 
     // start SMOL scheduler
@@ -86,12 +88,17 @@ public class Main {
   private static void startDataCollectors() {
     SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
     List<String> cmds = new ArrayList<>();
-    cmds.add("cd influx_greenhouse/greenhouse-data-collector; python3 -m collector");
+    cmds.add(
+        "nohup bash -c "
+            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector' "
+            + ">/dev/null "
+            + "2>/dev/null &");
 
     // exec start command for data collectors of shelf 1 and 2
     sshSender.execCmds(cmds);
-    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
-    sshSender.execCmds(cmds);
+
+    //    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
+    //    sshSender.execCmds(cmds);
   }
 
   private static void checkConfigs() {

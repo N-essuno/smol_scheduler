@@ -41,22 +41,23 @@ public class SmolScheduler {
   public static void run() {
     Utils.printMessage("Start run SmolScheduler", false);
 
+    // start asset model sync thread: check asset model edits and updates configuration
     syncAssetModel();
 
     ARQ.init();
 
     Utils.printMessage("Start executing SMOL code\n", false);
-    execSmol();
+    ResultSet plantsToWater = execSmol();
     Utils.printMessage("End executing SMOL code", false);
 
     Utils.printMessage("Start water control\n", false);
-    // waterControl();
+    waterControl(plantsToWater);
     Utils.printMessage("End water control", false);
 
     Utils.printMessage("End run SmolScheduler", false);
   }
 
-  public static void execSmol() {
+  private static ResultSet execSmol() {
     REPL repl = new REPL(settings);
 
     repl.command("verbose", "false");
@@ -72,34 +73,49 @@ public class SmolScheduler {
 
     ResultSet plantsToWater = repl.getInterpreter().query(needWaterQuery);
 
-    while (plantsToWater.hasNext()) {
-      QuerySolution plantToWater = plantsToWater.next();
-      // TODO send plantToWater to actuator
-      System.out.println(plantToWater);
-    }
-
     Utils.printMessage("End querying lifted state", true);
+
     repl.terminate();
+
+    return plantsToWater;
   }
 
-  private static void waterControl() {
-    // TODO change logic, now not needed to read lifted state, plant to water are given from SPARQL
-    //  query result
+  private static void waterControl(ResultSet plantsToWater) {
     GreenhouseModelReader greenhouseModelReader =
-        new GreenhouseModelReader(liftedStateOutputFile, ModelTypeEnum.SMOL_MODEL);
-    List<Integer> idPlantsToWater = greenhouseModelReader.getPlantsIdsToWater();
-    // close model to free resource access
-    greenhouseModelReader.closeModel();
-    System.out.println("idPlantsToWater: " + idPlantsToWater);
-    startWaterActuator(idPlantsToWater);
+        new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
+
+    // list of pump pins to activate
+    List<Integer> pumpPins = new ArrayList<>();
+
+    System.out.println("plantsToWater: " + plantsToWater);
+
+    while (plantsToWater.hasNext()) {
+      System.out.println("a");
+      QuerySolution plantToWater = plantsToWater.next();
+      String plantId = plantToWater.get("?plantId").asLiteral().toString();
+
+      System.out.println("b");
+      // get pump pin which waters plant with id plantId
+      int pumpPin = greenhouseModelReader.getPumpPinForPlant(plantId);
+      System.out.println("pumpPin: " + pumpPin);
+      System.out.println();
+      pumpPins.add(pumpPin);
+    }
+    startWaterActuator(pumpPins);
   }
 
-  private static void startWaterActuator(List<Integer> idPlantsToWater) {
-    if (idPlantsToWater.size() > 0) {
+  private static void startWaterActuator(List<Integer> pumpPinsToActivate) {
+    Utils.printMessage("Start water actuator", false);
+
+    if (pumpPinsToActivate.size() > 0) {
       SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
       List<String> cmds = new ArrayList<>();
-      cmds.add("cd greenhouse_actuator; python3 -m actuator pump 2");
-      sshSender.execCmds(cmds);
+      for (Integer pumpPin : pumpPinsToActivate) {
+        // activate pump connected to pin pumpPin for 2 seconds
+        cmds.add("cd greenhouse_actuator; python3 -m actuator water " + pumpPin + " 2");
+      }
+      System.out.println("water cmds: " + cmds);
+      // sshSender.execCmds(cmds);
     }
   }
 
@@ -162,13 +178,14 @@ public class SmolScheduler {
   }
 
   private static void sendDataCollectorsConfigs() {
-    // TODO change config files to send to data-collectors
-    SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
+    SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
 
     Utils.printMessage("Sending data collector configuration...", false);
     // send local data collector configuration files to remote data-collectors
     sshSender.sendFile(localShelf1DataCollectorConfigPath, shelf1DataCollectorConfigPath);
-    sshSender.sendFile(localShelf2DataCollectorConfigPath, shelf2DataCollectorConfigPath);
+
+    //    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
+    //    sshSender.sendFile(localShelf2DataCollectorConfigPath, shelf2DataCollectorConfigPath);
     Utils.printMessage("Data collector configuration sent", false);
   }
 

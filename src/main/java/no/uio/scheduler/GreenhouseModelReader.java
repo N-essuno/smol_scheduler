@@ -18,6 +18,8 @@ public class GreenhouseModelReader {
   String prog;
   Model model;
 
+  // TODO add check and handle empty query results
+
   public GreenhouseModelReader(String modelInputPath, ModelTypeEnum modelType) {
     this.model = ModelFactory.createDefaultModel();
     RDFDataMgr.read(model, modelInputPath);
@@ -191,6 +193,40 @@ public class GreenhouseModelReader {
     }
 
     return jsonPlantList;
+  }
+
+  public int getPumpPinForPlant(String plantId) {
+    int pumpPin;
+    String queryString =
+        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            + "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
+            + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
+            + "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
+            + "PREFIX ast:"
+            + " <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>\n"
+            + "SELECT ?pumpPin WHERE {\n"
+            + "\t?plant ast:hasPlantId \""
+            + plantId
+            + "\"^^xsd:string .\n"
+            + "\n"
+            + "\t?pot a ast:Pot ;\n"
+            + "\t\tast:hasPlant ?plant;\n"
+            + "\t\tast:isWateredBy ?pump .\n"
+            + "\n"
+            + "\t?pump ast:hasPumpGpioPin ?pumpPin .\n"
+            + "}";
+
+    Query query = QueryFactory.create(queryString);
+    QueryExecution qexec = QueryExecutionFactory.create(query, model);
+    try {
+      ResultSet results = qexec.execSelect();
+      QuerySolution soln = results.nextSolution();
+      pumpPin = soln.get("?pumpPin").asLiteral().getInt();
+    } finally {
+      qexec.close();
+    }
+
+    return pumpPin;
   }
 
   public void closeModel() {
