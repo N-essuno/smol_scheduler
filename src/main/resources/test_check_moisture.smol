@@ -56,7 +56,7 @@ class Plant(String plantId, Double idealMoisture)
 
         influxReturn = access(
             "from(bucket: \"greenhouse_test\")
-                |> range(start: -30d)
+                |> range(start: -120d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
@@ -75,7 +75,7 @@ class Plant(String plantId, Double idealMoisture)
 
         influxReturn = access(
             "from(bucket: \"greenhouse_test\")
-                |> range(start: -30d)
+                |> range(start: -120d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)

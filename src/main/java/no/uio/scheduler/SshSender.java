@@ -18,7 +18,14 @@ public class SshSender {
     setConfig(configType);
   }
 
+  /**
+   * Execute a list of commands on a remote server. The remote server depends on the actual
+   * configuration set.
+   *
+   * @param cmdList list of commands to be executed
+   */
   public void execCmds(List<String> cmdList) {
+
     try {
       ChannelExec channel;
       // set the configuration for the connection and connect
@@ -32,6 +39,7 @@ public class SshSender {
       for (String cmd : cmdList) {
         // create a channel for executing commands on the server and set the command
         channel = (ChannelExec) session.openChannel("exec");
+
         channel.setCommand(cmd);
 
         // set the output stream from the channel in order to get the output of the executed command
@@ -43,13 +51,13 @@ public class SshSender {
         // when the command is executed, the channel will be automatically disconnected by the
         // server.
         while (channel.isConnected()) {
+          Utils.printMessage("SSH command running... ", false);
           Thread.sleep(100);
         }
 
         printResult(cmd, responseStream.toString());
 
         // channel should be already disconnected, but just in case
-
         channel.disconnect();
       }
 
