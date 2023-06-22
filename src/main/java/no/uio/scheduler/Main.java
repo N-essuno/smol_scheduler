@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.jena.query.ARQ;
 
 public class Main {
 
@@ -60,6 +61,7 @@ public class Main {
   }
 
   private static void mainProgram() {
+    ARQ.init();
     Utils.printMessage("Starting Main", false);
 
     // check if configs are found, throw an exception otherwise
@@ -71,7 +73,7 @@ public class Main {
         Integer.parseInt(Utils.readSchedulerConfig().get("interval_seconds").toString());
     Utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
-    // do first sync of configuration
+    // do first sync of configuration from asset model
     Utils.printMessage("Starting data-collectors", false);
     SmolScheduler.syncAssetModel();
 
@@ -86,11 +88,12 @@ public class Main {
   }
 
   private static void startDataCollectors() {
+    // TODO change: note - starting only shelf 1 data collector now and starting in demo mode
     SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
     List<String> cmds = new ArrayList<>();
     cmds.add(
         "nohup bash -c "
-            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector' "
+            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector --demo' "
             + ">/dev/null "
             + "2>/dev/null &");
 

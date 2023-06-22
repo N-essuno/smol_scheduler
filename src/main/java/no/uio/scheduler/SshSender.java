@@ -51,7 +51,7 @@ public class SshSender {
         // when the command is executed, the channel will be automatically disconnected by the
         // server.
         while (channel.isConnected()) {
-          Utils.printMessage("SSH command running... ", false);
+          // Utils.printMessage("SSH command running... ", false);
           Thread.sleep(100);
         }
 

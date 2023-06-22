@@ -60,7 +60,7 @@ public class SmolScheduler {
   private static ResultSet execSmol() {
     REPL repl = new REPL(settings);
 
-    repl.command("verbose", "false");
+    repl.command("verbose", "true");
 
     repl.command("read", smolPath);
     repl.command("auto", "");
@@ -90,15 +90,12 @@ public class SmolScheduler {
     System.out.println("plantsToWater: " + plantsToWater);
 
     while (plantsToWater.hasNext()) {
-      System.out.println("a");
       QuerySolution plantToWater = plantsToWater.next();
       String plantId = plantToWater.get("?plantId").asLiteral().toString();
 
-      System.out.println("b");
       // get pump pin which waters plant with id plantId
       int pumpPin = greenhouseModelReader.getPumpPinForPlant(plantId);
       System.out.println("pumpPin: " + pumpPin);
-      System.out.println();
       pumpPins.add(pumpPin);
     }
     startWaterActuator(pumpPins);
@@ -115,7 +112,7 @@ public class SmolScheduler {
         cmds.add("cd greenhouse_actuator; python3 -m actuator water " + pumpPin + " 2");
       }
       System.out.println("water cmds: " + cmds);
-      // sshSender.execCmds(cmds);
+      sshSender.execCmds(cmds);
     }
   }
 
@@ -131,12 +128,12 @@ public class SmolScheduler {
     if (lastModified > assetModelLastModified) {
       Utils.printMessage("Asset model changed, updating data collector configuration...", false);
       assetModelLastModified = lastModified;
-      updateDataCollectorConfig();
+      updateDataCollectorsConfig();
       sendDataCollectorsConfigs();
     }
   }
 
-  private static void updateDataCollectorConfig() {
+  private static void updateDataCollectorsConfig() {
     // read data collectors configurations from files
     INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
     INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
