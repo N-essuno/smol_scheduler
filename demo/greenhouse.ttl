@@ -434,12 +434,14 @@ ast:potGroup1 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
-          ast:hasPumpGpioPin "18"^^xsd:int .
+          ast:hasPumpGpioPin "18"^^xsd:int ;
+          ast:hasPumpId "1"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump2
 ast:pump2 rdf:type owl:NamedIndividual ,
-                   ast:Pump .
+                   ast:Pump ;
+          ast:hasPumpId "2"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#shelf1
