@@ -87,11 +87,10 @@ public class SmolScheduler {
     // list of pump pins to activate
     List<Integer> pumpPins = new ArrayList<>();
 
-    System.out.println("plantsToWater: " + plantsToWater);
-
     while (plantsToWater.hasNext()) {
       QuerySolution plantToWater = plantsToWater.next();
       String plantId = plantToWater.get("?plantId").asLiteral().toString();
+      System.out.println("plantToWater: " + plantId);
 
       // get pump pin which waters plant with id plantId
       int pumpPin = greenhouseModelReader.getPumpPinForPlant(plantId);
