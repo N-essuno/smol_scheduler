@@ -93,7 +93,7 @@ public class Main {
     List<String> cmds = new ArrayList<>();
     cmds.add(
         "nohup bash -c "
-            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector --demo' "
+            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector' "
             + ">/dev/null "
             + "2>/dev/null &");
 
