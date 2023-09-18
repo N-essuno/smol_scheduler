@@ -1,3 +1,5 @@
+# DOCS OUTDATED, NEED TO BE UPDATED
+
 # Greenhouse SMOL code
 
 To execute a demo of the program type in the shell, from the root of the project:
