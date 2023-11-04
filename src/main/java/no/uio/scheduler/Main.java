@@ -1,111 +1,146 @@
 package no.uio.scheduler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import jakarta.jms.JMSException;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.jena.query.ARQ;
 
 public class Main {
 
   public static void main(String[] args) {
+    Utils utils;
+
+    if (args.length > 0 && args[0].equals("d")) {
+      utils = new Utils(ExecutionModeEnum.LOCAL);
+    } else {
+      utils = new Utils(ExecutionModeEnum.REMOTE);
+    }
+
+    GreenhouseINIManager greenhouseINIManager = new GreenhouseINIManager(utils);
+    SmolScheduler smolScheduler = new SmolScheduler(utils, greenhouseINIManager);
+
+    // Execute the Subscribe into a separate thread
+    Thread subscriberThread = new Thread(() -> {
+      try {
+        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("broker_url").toString(), smolScheduler);
+//        subscriber.subscribe(utils.readQueueConfig().get("queue_name").toString());
+        subscriber.subscribe("controller.1.asset.model");
+
+        Thread.sleep(Long.MAX_VALUE);
+      } catch (JMSException e) {
+        e.printStackTrace();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+    subscriberThread.start();
+
     // use -nojar flag to run the program from an IDE, it will use files from src/main/resources
     // directory
     if (args.length > 0 && args[0].equals("-nojar")) {
-      Utils.executingJar = false;
+      utils.executingJar = false;
+    } else if (args.length > 0 && args[0].equals("d")) {
+      testProgram(utils, greenhouseINIManager, smolScheduler);
+    } else {
+      mainProgram(utils, greenhouseINIManager, smolScheduler);
     }
-
-    mainProgram();
-    // randomTest();
-
   }
 
-  public static void randomTest() {
-    // TODO remove test code below after usage and implement config file writing
-    System.out.println(
-        "-------------------------------------------------------------------------------------");
+  private static void testProgram(Utils utils, GreenhouseINIManager greenhouseINIManager, SmolScheduler smolScheduler) {
+    ARQ.init();
+    utils.printMessage("Starting Test", false);
 
-    INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
-    INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
+    // check if configs are found, throw an exception otherwise
+    checkConfigs(utils);
+    utils.printMessage("Configs checked", false);
 
     System.out.println("\n\n|||||||| SPARQL QUERY ||||||||");
     String greenhouseAssetModelFile =
-        Utils.readSchedulerConfig().get("greenhouse_asset_model_file").toString();
+            utils.readSchedulerConfig().get("greenhouse_asset_model_file").toString();
 
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
+    INIConfiguration iniConfiguration = utils.readDataCollectorConfig("1");
+    INIConfiguration iniConfiguration2 = utils.readDataCollectorConfig("2");
+
     List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
     System.out.println("Shelf1 Json Pots: " + shelf1JsonPots);
-    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
+    greenhouseINIManager.overwriteSection(iniConfiguration, "pots", "pot", shelf1JsonPots);
 
     System.out.println("*********************** CONFIG 1");
-    GreenhouseINIManager.printFile(iniConfiguration1);
+    greenhouseINIManager.printFile(iniConfiguration);
 
     List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
     System.out.println("Shelf2 Json Pots: " + shelf2JsonPots);
-    GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
+    greenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
 
     System.out.println("*********************** CONFIG 2");
-    GreenhouseINIManager.printFile(iniConfiguration2);
+    greenhouseINIManager.printFile(iniConfiguration2);
 
-    SmolScheduler.syncAssetModel();
+    smolScheduler.syncAssetModel();
 
-    Utils.writeDataCollectorConfig(iniConfiguration1, "1");
-    Utils.writeDataCollectorConfig(iniConfiguration2, "2");
-
-    System.out.println(
-        "-------------------------------------------------------------------------------------");
-  }
-
-  private static void mainProgram() {
-    ARQ.init();
-    Utils.printMessage("Starting Main", false);
-
-    // check if configs are found, throw an exception otherwise
-    checkConfigs();
-    Utils.printMessage("Configs checked", false);
+    utils.writeDataCollectorConfig(iniConfiguration, "1");
+    utils.writeDataCollectorConfig(iniConfiguration2, "2");
 
     // run the scheduler every interval_seconds seconds
     int intervalSeconds =
-        Integer.parseInt(Utils.readSchedulerConfig().get("interval_seconds").toString());
-    Utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
-
-    // do first sync of configuration from asset model
-    Utils.printMessage("Starting data-collectors", false);
-    SmolScheduler.syncAssetModel();
-
-    // start data collectors
-    startDataCollectors();
+            Integer.parseInt(utils.readSchedulerConfig().get("interval_seconds").toString());
+    utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
     // start SMOL scheduler
-    Utils.printMessage("Starting scheduled thread", false);
+    utils.printMessage("Starting scheduled thread", false);
     ScheduledExecutorService executorService;
     executorService = Executors.newSingleThreadScheduledExecutor();
-    executorService.scheduleAtFixedRate(SmolScheduler::run, 0, intervalSeconds, TimeUnit.SECONDS);
+    executorService.scheduleAtFixedRate(() -> {
+      try {
+        smolScheduler.run();
+      } catch (JMSException e) {
+        // Handle the exception (e.g., log it or take appropriate action)
+      }
+    }, 0, intervalSeconds, TimeUnit.SECONDS);
   }
 
-  private static void startDataCollectors() {
-    // TODO change: note - starting only shelf 1 data collector now and starting in demo mode
-    SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
-    List<String> cmds = new ArrayList<>();
-    cmds.add(
-        "nohup bash -c "
-            + "'cd influx_greenhouse/greenhouse-data-collector; python3 -m collector' "
-            + ">/dev/null "
-            + "2>/dev/null &");
+  private static void mainProgram(Utils utils, GreenhouseINIManager greenhouseINIManager, SmolScheduler smolScheduler) {
+    ARQ.init();
+    utils.printMessage("Starting Main", false);
 
-    // exec start command for data collectors of shelf 1 and 2
-    sshSender.execCmds(cmds);
+    // check if configs are found, throw an exception otherwise
+    checkConfigs(utils);
+    utils.printMessage("Configs checked", false);
 
-    //    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
-    //    sshSender.execCmds(cmds);
+    // run the scheduler every interval_seconds seconds
+    int intervalSeconds =
+        Integer.parseInt(utils.readSchedulerConfig().get("interval_seconds").toString());
+    utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
+
+    // do first sync of configuration from asset model
+    utils.printMessage("Starting data-collectors", false);
+    smolScheduler.syncAssetModel();
+
+    // start SMOL scheduler
+    utils.printMessage("Starting scheduled thread", false);
+    ScheduledExecutorService executorService;
+    executorService = Executors.newSingleThreadScheduledExecutor();
+    executorService.scheduleAtFixedRate(() -> {
+      try {
+        smolScheduler.run();
+      } catch (JMSException e) {
+        // Handle the exception (e.g., log it or take appropriate action)
+      }
+    }, 0, intervalSeconds, TimeUnit.SECONDS);
   }
 
-  private static void checkConfigs() {
-    Utils.readSchedulerConfig();
-    Utils.readSshConfig();
+  private static void checkConfigs(Utils utils) {
+    utils.readSchedulerConfig();
+    utils.readSshConfig();
+    utils.readQueueConfig();
   }
 }

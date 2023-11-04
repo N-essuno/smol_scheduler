@@ -4,10 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import no.uio.microobject.main.Settings;
 import no.uio.microobject.runtime.REPL;
 import org.apache.commons.configuration2.INIConfiguration;
@@ -15,72 +13,102 @@ import org.apache.jena.query.ARQ;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.jetbrains.annotations.NotNull;
+import jakarta.jms.JMSException;
+import org.json.JSONObject;
 
 public class SmolScheduler {
-  private static final Map<String, Object> configMap = Utils.readSchedulerConfig();
-  private static final String liftedStateOutputFile =
-      configMap.get("lifted_state_output_file").toString();
-  private static final String liftedStateOutputPath =
-      configMap.get("lifted_state_output_path").toString();
-  private static final String greenhouseAssetModelFile =
-      configMap.get("greenhouse_asset_model_file").toString();
-  private static final String domainPrefixUri = configMap.get("domain_prefix_uri").toString();
-  private static final Settings settings = getSettings();
-  private static final String smolPath = configMap.get("smol_path").toString();
-  private static final String shelf1DataCollectorConfigPath =
-      configMap.get("shelf_1_data_collector_config_path").toString();
-  private static final String shelf2DataCollectorConfigPath =
-      configMap.get("shelf_2_data_collector_config_path").toString();
-  private static final String localShelf1DataCollectorConfigPath =
-      configMap.get("local_shelf_1_data_collector_config_path").toString();
-  private static final String localShelf2DataCollectorConfigPath =
-      configMap.get("local_shelf_2_data_collector_config_path").toString();
+  private final Utils utils;
+  private final GreenhouseINIManager greenhouseINIManager;
+  private final String liftedStateOutputFile;
+  private final String liftedStateOutputPath;
+  private final String greenhouseAssetModelFile;
+  private final String domainPrefixUri;
+  private final Map<Integer, String[]> shelfCollectorConfigPaths;
+  private final String queueUrl;
+  private final REPL repl;
 
-  private static long assetModelLastModified = 0;
+  private long assetModelLastModified = 0;
 
-  public static void run() {
-    Utils.printMessage("Start run SmolScheduler", false);
+  public SmolScheduler(Utils utils, GreenhouseINIManager greenhouseINIManager) {
+    this.utils = utils;
+    this.greenhouseINIManager = greenhouseINIManager;
+
+    Map<String, Object> configMap = this.utils.readSchedulerConfig();
+
+    this.liftedStateOutputFile = configMap.get("lifted_state_output_file").toString();
+    this.liftedStateOutputPath = configMap.get("lifted_state_output_path").toString();
+    this.greenhouseAssetModelFile = configMap.get("greenhouse_asset_model_file").toString();
+    this.domainPrefixUri = configMap.get("domain_prefix_uri").toString();
+
+    Settings settings = getSettings();
+    String smolPath = configMap.get("smol_path").toString();
+
+    this.repl = new REPL(settings);
+    this.repl.command("verbose", "true");
+    this.repl.command("read", smolPath);
+
+    Map<String, Object> queueMap = this.utils.readQueueConfig();
+    this.queueUrl = queueMap.get("queue_url").toString();
+
+    this.shelfCollectorConfigPaths = new HashMap<>();
+    // load all config of shelves
+    for (int i=0; i<this.utils.getShelf(); i++) {
+      shelfCollectorConfigPaths.put(i+1, new String[]{
+              configMap.get("local_shelf_" + (i+1) + "_data_collector_config_path").toString(),
+              configMap.get("shelf_" + (i+1) + "_data_collector_config_path").toString()});
+    }
+  }
+
+  public REPL getRepl() {
+    return this.repl;
+  }
+
+  public void run() throws JMSException {
+    this.utils.printMessage("Start run SmolScheduler", false);
 
     // start asset model sync thread: check asset model edits and updates configuration
     syncAssetModel();
 
     ARQ.init();
 
-    Utils.printMessage("Start executing SMOL code\n", false);
+    this.utils.printMessage("Start executing SMOL code\n", false);
     ResultSet plantsToWater = execSmol();
-    Utils.printMessage("End executing SMOL code", false);
+    this.utils.printMessage("End executing SMOL code", false);
 
-    Utils.printMessage("Start water control\n", false);
+    this.utils.printMessage("Start water control\n", false);
     waterControl(plantsToWater);
-    Utils.printMessage("End water control", false);
+    this.utils.printMessage("End water control", false);
 
-    Utils.printMessage("End run SmolScheduler", false);
+    this.utils.printMessage("End run SmolScheduler", false);
   }
 
-  private static ResultSet execSmol() {
-    REPL repl = new REPL(settings);
+  private ResultSet execSmol() {
+    //REPL repl = new REPL(settings);
 
-    repl.command("verbose", "true");
+    this.repl.command("auto", "");
+      assert this.repl.getInterpreter() != null;
+      this.repl.getInterpreter().evalCall(
+            this.repl.getInterpreter().getObjectNames("AssetModel").get(0),
+            "AssetModel",
+            "reconfigure");
 
-    repl.command("read", smolPath);
-    repl.command("auto", "");
-
-    Utils.printMessage("Start querying lifted state...", true);
+    this.utils.printMessage("Start querying lifted state...", true);
     String needWaterQuery =
         "PREFIX prog: <https://github.com/Edkamb/SemanticObjects/Program#>\n"
             + "SELECT ?plantId "
-            + "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId}";
+            + "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId . }";
 
-    ResultSet plantsToWater = repl.getInterpreter().query(needWaterQuery);
+    assert this.repl.getInterpreter() != null;
+    ResultSet plantsToWater = this.repl.getInterpreter().query(needWaterQuery);
 
-    Utils.printMessage("End querying lifted state", true);
+    this.utils.printMessage("End querying lifted state", true);
 
-    repl.terminate();
+    this.repl.terminate();
 
     return plantsToWater;
   }
 
-  private static void waterControl(ResultSet plantsToWater) {
+  private void waterControl(ResultSet plantsToWater) throws JMSException {
     GreenhouseModelReader greenhouseModelReader =
         new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
@@ -90,103 +118,129 @@ public class SmolScheduler {
     while (plantsToWater.hasNext()) {
       QuerySolution plantToWater = plantsToWater.next();
       String plantId = plantToWater.get("?plantId").asLiteral().toString();
-      System.out.println("plantToWater: " + plantId);
+      this.utils.printMessage("plantToWater: " + plantId, false);
 
       // get pump pin which waters plant with id plantId
       int pumpPin = greenhouseModelReader.getPumpPinForPlant(plantId);
-      System.out.println("pumpPin: " + pumpPin);
+      this.utils.printMessage("pumpPin: " + pumpPin, false);
       pumpPins.add(pumpPin);
     }
+    this.utils.printMessage("Start watering", false);
+
     startWaterActuator(pumpPins);
   }
 
-  private static void startWaterActuator(List<Integer> pumpPinsToActivate) {
-    Utils.printMessage("Start water actuator", false);
+  @NotNull
+  private static List<String> getStrings(List<Integer> pumpPinsToActivate) {
+    List<String> cmds = new ArrayList<>();
+    for (Integer pumpIn : pumpPinsToActivate) {
+      cmds.add("[WATER]water " + pumpIn + " 2");
+    }
+    return cmds;
+  }
 
-    if (pumpPinsToActivate.size() > 0) {
-      SshSender sshSender = new SshSender(ConfigTypeEnum.ACTUATOR);
-      List<String> cmds = new ArrayList<>();
-      for (Integer pumpPin : pumpPinsToActivate) {
-        // activate pump connected to pin pumpPin for 2 seconds
-        cmds.add("cd greenhouse_actuator; python3 -m actuator water " + pumpPin + " 2");
+  private void startWaterActuator(List<Integer> pumpPinsToActivate) throws JMSException {
+    this.utils.printMessage("Start water actuator", false);
+
+    if (!pumpPinsToActivate.isEmpty()) {
+//      final List<String> cmds = getStrings(pumpPinsToActivate);
+//
+//      this.utils.printMessage("Water cmds: " + cmds, false);
+
+      // We are not gonna connect to any machines if we are in local
+      if (this.utils.getExeuctionMode() == ExecutionModeEnum.REMOTE) {
+//        Publisher publisher = new Publisher(queueUrl);
+//
+//        try {
+//          publisher.publish("actuator.1.water", cmds.toString());
+//        } catch (Exception e) {
+//          e.printStackTrace();
+//        }
+        for (Integer pumpPin : pumpPinsToActivate) {
+          Publisher publisher = new Publisher(queueUrl);
+
+          try {
+            String command =  "[WATER]" + String.valueOf(pumpPin) + " 2";
+            this.utils.printMessage("Water cmd: " + command, false);
+            publisher.publish("actuator.1.water", command);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
       }
-      System.out.println("water cmds: " + cmds);
-      sshSender.execCmds(cmds);
     }
   }
 
-  public static void syncAssetModel() {
+  public void syncAssetModel() {
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
     File assetModelFile = new File(greenhouseAssetModelFile);
     long lastModified = assetModelFile.lastModified();
-    Utils.printMessage("Asset model current date: " + sdf.format(lastModified), false);
-    Utils.printMessage("Asset model stored date: " + sdf.format(assetModelLastModified), false);
+    this.utils.printMessage("Asset model current date: " + sdf.format(lastModified), false);
+    this.utils.printMessage("Asset model stored date: " + sdf.format(assetModelLastModified), false);
 
     // check if asset model has been modified, then update data collector configuration and send it
     if (lastModified > assetModelLastModified) {
-      Utils.printMessage("Asset model changed, updating data collector configuration...", false);
+      this.utils.printMessage("Asset model changed, updating data collector configuration...", false);
       assetModelLastModified = lastModified;
       updateDataCollectorsConfig();
-      sendDataCollectorsConfigs();
     }
   }
 
-  private static void updateDataCollectorsConfig() {
-    // read data collectors configurations from files
-    INIConfiguration iniConfiguration1 = Utils.readDataCollectorConfig("1");
-    INIConfiguration iniConfiguration2 = Utils.readDataCollectorConfig("2");
+  private void updateDataCollectorsConfig() {
+    for (int i=0; i<this.utils.getShelf(); i++) {
+      // read data collectors configurations from files
+      String shelfFloor = String.valueOf(i + 1); // We start from 0, but pots starts from 1
 
-    // create model reader to read asset model
-    GreenhouseModelReader greenhouseModelReader =
-        new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
+      INIConfiguration iniConfiguration = this.utils.readDataCollectorConfig(shelfFloor);
+      GreenhouseModelReader greenhouseModelReader =
+              new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
-    // get shelves 1 and 2 from asset model, including Raspberry connection mapping.
-    // Shelves are stored as JSON strings
-    List<String> shelf1Json = greenhouseModelReader.getShelf("1");
-    List<String> shelf2Json = greenhouseModelReader.getShelf("2");
+      // get shelves from asset model, including Raspberry connection mapping.
+      // Shelves are stored as JSON strings
+      List<String> shelfJson = greenhouseModelReader.getShelf(shelfFloor);
+      // get pots on shelf from asset model, including Raspberry connection mapping.
+      // Pots are stored as JSON strings
+      List<String> shelfJsonPot = greenhouseModelReader.getShelfPots(shelfFloor);
+      // get plants on shelf from asset model.
+      // Plants are stored as JSON strings
+      List<String> shelfJsonPlants = greenhouseModelReader.getShelfPlants(shelfFloor);
 
-    // get pots on shelf 1 and 2 from asset model, including Raspberry connection mapping.
-    // Pots are stored as JSON strings
-    List<String> shelf1JsonPots = greenhouseModelReader.getShelfPots("1");
-    List<String> shelf2JsonPots = greenhouseModelReader.getShelfPots("2");
+      // overwrite shelves section in data collector INI configuration files
+      this.greenhouseINIManager.overwriteSection(iniConfiguration, "shelves", "shelf", shelfJson);
+      // overwrite pots section in data collector INI configuration files
+      this.greenhouseINIManager.overwriteSection(iniConfiguration, "pots", "pot", shelfJsonPot);
+      // overwrite plants section in data collector INI configuration files
+      this.greenhouseINIManager.overwriteSection(iniConfiguration, "plants", "plant", shelfJsonPlants);
 
-    // get plants on shelf 1 and 2 from asset model.
-    // Plants are stored as JSON strings
-    List<String> shelf1JsonPlants = greenhouseModelReader.getShelfPlants("1");
-    List<String> shelf2JsonPlants = greenhouseModelReader.getShelfPlants("2");
+      // write data collector configuration files
+      this.utils.writeDataCollectorConfig(iniConfiguration, shelfFloor);
 
-    // overwrite shelves section in data collector INI configuration files
-    GreenhouseINIManager.overwriteSection(iniConfiguration1, "shelves", "shelf", shelf1Json);
-    GreenhouseINIManager.overwriteSection(iniConfiguration2, "shelves", "shelf", shelf2Json);
+      String updatedConfig = this.utils.readDataCollectorConfigJson(shelfFloor).toString();
 
-    // overwrite pots section in data collector INI configuration files
-    GreenhouseINIManager.overwriteSection(iniConfiguration1, "pots", "pot", shelf1JsonPots);
-    GreenhouseINIManager.overwriteSection(iniConfiguration2, "pots", "pot", shelf2JsonPots);
-
-    // overwrite plants section in data collector INI configuration files
-    GreenhouseINIManager.overwriteSection(iniConfiguration1, "plants", "plant", shelf1JsonPlants);
-    GreenhouseINIManager.overwriteSection(iniConfiguration2, "plants", "plant", shelf2JsonPlants);
-
-    // write data collector configuration files
-    Utils.writeDataCollectorConfig(iniConfiguration1, "1");
-    Utils.writeDataCollectorConfig(iniConfiguration2, "2");
+      if (updatedConfig != null) {
+        // Prepend the [CONFIG] token to the configuration
+        changeDataCollectorsConfigs(shelfFloor, "[CONFIG]" + updatedConfig);
+      }
+    }
   }
 
-  private static void sendDataCollectorsConfigs() {
-    SshSender sshSender = new SshSender(ConfigTypeEnum.DATA_COLLECTOR_1);
+  private void changeDataCollectorsConfigs(String id, String command) {
+    if(this.utils.getExeuctionMode() == ExecutionModeEnum.LOCAL) {
+      return;
+    }
 
-    Utils.printMessage("Sending data collector configuration...", false);
-    // send local data collector configuration files to remote data-collectors
-    sshSender.sendFile(localShelf1DataCollectorConfigPath, shelf1DataCollectorConfigPath);
-
-    //    sshSender.setConfig(ConfigTypeEnum.DATA_COLLECTOR_2);
-    //    sshSender.sendFile(localShelf2DataCollectorConfigPath, shelf2DataCollectorConfigPath);
-    Utils.printMessage("Data collector configuration sent", false);
+    try {
+      this.utils.printMessage("Sending data collector configuration for shelf " + id + "..." + command, false);
+      Publisher publisher = new Publisher(queueUrl);
+      publisher.publish("collector." + id + ".config.change", command);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @NotNull
-  private static Settings getSettings() {
+  private Settings getSettings() {
     boolean verbose = true;
     boolean materialize = false;
     String kgOutput = liftedStateOutputPath;
@@ -200,21 +254,26 @@ public class SmolScheduler {
     boolean useQueryType = false;
 
     String assetModel = getAssetModel(greenhouseAssetModel);
+    assetModel = ""; // TODO: remove the asset model at once when it's done
+    String tripleStoreUrl = "http://localhost:3030/GreenHouse";
+    String reasoner = "off"; // we don't want the reasoner
 
     return new Settings(
         verbose,
         materialize,
         kgOutput,
         assetModel,
+        tripleStoreUrl,
         domainPrefix,
         progPrefix,
         runPrefix,
         langPrefix,
         extraPrefixes,
-        useQueryType);
+        useQueryType,
+        reasoner);
   }
 
-  private static String getAssetModel(String assetModel) {
+  private String getAssetModel(String assetModel) {
     // Read the asset model from the file
     try {
       return Files.readString(new File(assetModel).toPath());

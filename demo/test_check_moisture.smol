@@ -46,14 +46,14 @@ class Plant(String plantId, Double idealMoisture)
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"demo\")
+            "from(bucket: \"greenhouse\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("demo\\config_local.yml"),
+        INFLUXDB("config_local.yml"),
         this.plantId);
 
         ndvi = influxReturn.get(0);
@@ -65,14 +65,14 @@ class Plant(String plantId, Double idealMoisture)
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"demo\")
+            "from(bucket: \"greenhouse\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
                 |> filter(fn: (r) => r[\"plant_id\"] == %1)
                 |> keep(columns: [\"_value\"])
                 |> last()",
-        INFLUXDB("demo\\config_local.yml"),
+        INFLUXDB("config_local.yml"),
         this.plantId);
 
         moisture = influxReturn.get(0);
