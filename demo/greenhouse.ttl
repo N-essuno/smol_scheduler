@@ -112,7 +112,8 @@ ast:hasHumidityGpioPin rdf:type owl:DatatypeProperty ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasIdealMoisture
 ast:hasIdealMoisture rdf:type owl:DatatypeProperty ;
-                     rdfs:domain ast:Plant .
+                     rdfs:domain ast:Plant ;
+                     rdfs:range xsd:double .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasIdealTemperature
@@ -235,11 +236,7 @@ ast:hasWaterLevel rdf:type owl:DatatypeProperty ;
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#Basilicum
 ast:Basilicum rdf:type owl:Class ;
-              rdfs:subClassOf ast:Plant ,
-                              [ rdf:type owl:Restriction ;
-                                owl:onProperty ast:hasIdealMoisture ;
-                                owl:hasValue "50.0"
-                              ] .
+              rdfs:subClassOf ast:Plant .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#Greenhouse
@@ -345,14 +342,14 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum1
 ast:basilicum1 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "50.0"^^xsd:string ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
                ast:hasPlantId "1"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum2
 ast:basilicum2 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "50.0"^^xsd:string ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
                ast:hasPlantId "2"^^xsd:string .
 
 
@@ -441,6 +438,7 @@ ast:pump1 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pump2
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
+          ast:hasPumpGpioPin "18"^^xsd:int ;
           ast:hasPumpId "2"^^xsd:string .
 
 
@@ -462,13 +460,13 @@ ast:shelf2 rdf:type owl:NamedIndividual ,
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor1
 ast:stemor1 rdf:type owl:NamedIndividual ;
-            ast:hasIdealMoisture "40"^^xsd:string ;
+            ast:hasIdealMoisture "40.0"^^xsd:double ;
             ast:hasPlantId "3"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor2
 ast:stemor2 rdf:type owl:NamedIndividual ;
-            ast:hasIdealMoisture "40"^^xsd:string ;
+            ast:hasIdealMoisture "40.0"^^xsd:double ;
             ast:hasPlantId "4"^^xsd:string .
 
 
