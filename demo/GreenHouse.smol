@@ -5,7 +5,7 @@ abstract class Twin() end
  *  This information is needed by the scheduler to send to signal to water
  *  @class PlantToWater
  */
-class PlantToWater extends Twin (Int id)
+class PlantToWater extends Twin (String plantId)
 end
 
 /**
@@ -31,12 +31,15 @@ class Plant extends Twin (String plantId, Double idealMoisture, String healthSta
         INFLUXDB("config_local.yml"),
         this.plantId);
 
-        healthState = influxReturn.get(0);
+        if influxReturn != null then
+            healthState = influxReturn.get(0);
+        end
+        
         return healthState;
     end
 
     Double getPotMoisture()
-        Double moisture = 0.0;
+        Double moisture = 100.0;
         List<Double> influxReturn = null;
 
         influxReturn = access(
@@ -49,8 +52,11 @@ class Plant extends Twin (String plantId, Double idealMoisture, String healthSta
                 |> last()",
         INFLUXDB("config_local.yml"),
         this.plantId);
+        
+        if influxReturn != null then
+            moisture = influxReturn.get(0);
+        end
 
-        moisture = influxReturn.get(0);
         return moisture;
     end
 end
@@ -90,10 +96,13 @@ class Pot extends Twin (String shelfFloor, String groupPosition, String potPosit
         this.potPosition,
         this.shelfFloor);
 
-        Int length = influxReturn.length();
-        print(length);
-        // get first value of list (list contains just one value)
-        moisture = influxReturn.get(0);
+        if influxReturn != null then
+            Int length = influxReturn.length();
+            print(length);
+            // get first value of list (list contains just one value)
+            moisture = influxReturn.get(0);
+        end
+        
         return moisture;
     end
 end
@@ -120,8 +129,12 @@ class Shelf extends Twin (String shelfFloor)
                 |> last()",
         INFLUXDB("config_local.yml"),
         this.shelfFloor);
-        // get first value of list (list contains just one value)
-        humidity = influxReturn.get(0);
+        
+        if influxReturn != null then
+            // get first value of list (list contains just one value)
+            humidity = influxReturn.get(0);
+        end
+        
         return humidity;
     end
 
@@ -141,8 +154,12 @@ class Shelf extends Twin (String shelfFloor)
                 |> last()",
         INFLUXDB("config_local.yml"),
         this.shelfFloor);
-        // get first value of list (list contains just one value)
-        temperature = influxReturn.get(0);
+        
+        if influxReturn != null then
+            // get first value of list (list contains just one value)
+            temperature = influxReturn.get(0);
+        end
+        
         return temperature;
     end
 end
@@ -169,7 +186,11 @@ class Pump extends Twin (String shelfFloor, String groupPosition)
             INFLUXDB("config_local.yml"),
             this.shelfFloor,
             this.groupPosition);
-        pumpedWater = influxReturn.get(0);
+        
+        if influxReturn != null then
+            pumpedWater = influxReturn.get(0);
+        end
+        
         return pumpedWater;
     end
 end
@@ -195,7 +216,11 @@ class GreenHouse extends Twin ()
                 |> keep(columns: [\"_value\"])
                 |> last()",
             INFLUXDB("config_local.yml"));
-        light = influxReturn.get(0);
+        
+        if influxReturn != null then
+            light = influxReturn.get(0);
+        end
+        
         return light;
     end
 end
@@ -207,312 +232,381 @@ end
  *  @class AssetModel
  */
 class AssetModel extends Twin ()
-    // Get the pot instance from the asset model
-    List<Pot> getPots()
-        List<Pot> pots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor ?groupPosition ?potPosition
-            WHERE {
-                ?pot rdf:type ast:Pot ;
-                    ast:hasShelfFloor ?shelfFloor ;
-                    ast:hasGroupPosition ?groupPosition ;
-                    ast:hasPotPosition ?potPosition .
-            }");
-
-        return pots;
-    end
-
-    // Get shelf instance from the asset model
-    List<Shelf> getShelves()
-        List<Shelf> shelves = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor
-            WHERE {
-                ?shelf rdf:type ast:Shelf ;
-                    ast:hasShelfFloor ?shelfFloor ;
-            }");
-
-        return shelves;
-    end
-
-    // Get pump instance from the asset model
-    List<Pump> getPumps()
-        List<Pump> pumps = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor ?groupPosition
-            WHERE {
-                ?pump rdf:type ast:Pump ;
-                    ast:hasShelfFloor ?shelfFloor ;
-                    ast:hasGroupPosition ?groupPosition .
-            }");
-
-        return pumps;
-    end
-
-    // Get plant instance from the asset model
-    List<Plant> getPlants()
-        List<Plant> plants = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?plantId ?idealMoisture
-            WHERE {
-                ?plant rdf:type ast:Plant ;
-                    ast:hasPlantId ?plantId ;
-                    ast:hasIdealMoisture ?idealMoisture .
-            }");
-
-        return plants;
-    end
-
-    // Get health state instance
-    List<HealthState> getHealthStates()
-        List<HealthState> healthStates = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?healthStateId ?healthStateName
-            WHERE {
-                ?healthState rdf:type ast:HealthState ;
-                    ast:hasHealthStateId ?healthStateId ;
-                    ast:hasHealthStateName ?healthStateName .
-            }");
-
-        return healthStates;
-    end
-
     Unit reconfigure()
         print("RECONFIG> Reconfiguring the asset model...");
         print("RECONFIG> Reconfiguring the pots");
         Int i = 0;
 
+        /**
+         *  Add pots that are not in the program model
+         */
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT ?shelfFloor ?groupPosition ?potPosition
             WHERE {
-                ?x a ast:Pot ; 
+                ?x rdf:type ast:Pot ; 
                     ast:hasShelfFloor ?shelfFloor ;
                     ast:hasGroupPosition ?groupPosition ;
                     ast:hasPotPosition ?potPosition .
                 FILTER NOT EXISTS {
-                    ?y a prog:Pot.
-                        ?y prog:Pot_shelfFloor ?shelfFloor .
-                        ?y prog:Pot_groupPosition ?groupPosition .
-                        ?y prog:Pot_potPosition ?potPosition .
+                    ?y a prog:Pot ; 
+                        prog:Pot_helfFloor ?shelfFloor ;
+                        prog:Pot_groupPosition ?groupPosition ;
+                        prog:Pot_potPosition ?potPosition .
                 }
             }");
+
 
         if newPots == null then print("RECONFIG> No new pots"); else
             print("RECONFIG> New Pot(s) detected: repairing the model");
 
-            Int potsLength = newPots.length();
+            Int newPotsLength = newPots.length();
             i = 0;
-            while i < potsLength do
-                Pot pot = newPots.get(i);
+            while i < newPotsLength do
+                Pot newPot = newPots.get(i);
                 print("RECONFIG> New pot detected: ");
-                print(pot.shelfFloor);
-                print(pot.groupPosition);
+                print(newPot.shelfFloor);
+                print(newPot.groupPosition);
+                print(newPot.potPosition);
                 i = i + 1;
             end
         end
 
+        /**
+         *  Destroy pots that are not in the asset model
+         */
+        List<Pot> wrongPots = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Pot ;
+                    prog:Pot_shelfFloor ?shelfFloor ;
+                    prog:Pot_groupPosition ?groupPosition ;
+                    prog:Pot_potPosition ?potPosition .
+                FILTER NOT EXISTS {
+                    ?y rdf:type ast:Pot ; 
+                        ast:hasShelfFloor ?shelfFloor ;
+                        ast:hasGroupPosition ?groupPosition ;
+                        ast:hasPotPosition ?potPosition .
+                }
+            }");
+
+        if wrongPots == null then print("RECONFIG> No misconfigured pots"); else
+            print("RECONFIG> Misconfigured Pot(s) detected: repairing the model");
+
+            Int wrongPotsLength = wrongPots.length();
+            i = 0;
+            while i < wrongPotsLength do
+                Pot wrongPot = wrongPots.get(i);
+
+                print("RECONFIG> Misconfigured pot to remove: ");
+                print(wrongPot.shelfFloor);
+                print(wrongPot.groupPosition);
+                print(wrongPot.potPosition);
+                
+                destroy(wrongPot);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongPots);
+        end
+
         print("RECONFIG> Reconfiguring the pumps");
 
+        /**
+         *  Add pumps that are not in the program model
+         */
         List<Pump> newPumps = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT ?shelfFloor ?groupPosition
             WHERE {
-                ?x a ast:Pump ;
+                ?x rdf:type ast:Pump ;
                     ast:hasShelfFloor ?shelfFloor ;
                     ast:hasGroupPosition ?groupPosition .
                 FILTER NOT EXISTS {
-                    ?y a prog:Pump .
-                        ?y prog:Pump_shelfFloor ?shelfFloor .
-                        ?y prog:Pump_groupPosition ?groupPosition .
+                    ?y a prog:Pump ;
+                        prog:Pump_shelfFloor ?shelfFloor ;
+                        prog:Pump_groupPosition ?groupPosition .
                 }
             }");
 
         if newPumps == null then print("RECONFIG> No new pumps"); else
             print("RECONFIG> New Pump(s) detected: repairing the model");
 
-            Int pumpsLength = newPumps.length();
+            Int newPumpsLength = newPumps.length();
             i = 0;
-            while i < pumpsLength do
-                Pump pump = newPumps.get(i);
+            while i < newPumpsLength do
+                Pump newPump = newPumps.get(i);
+
                 print("RECONFIG> New pump detected: ");
-                print(pump.shelfFloor);
-                print(pump.groupPosition);
+                print(newPump.shelfFloor);
+                print(newPump.groupPosition);
                 i = i + 1;
             end
+        end
+
+        /**
+         *  Destroy pumps that are not in the asset model
+         */
+        List<Pump> wrongPumps = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_shelfFloor ?shelfFloor ;
+                    prog:Pump_groupPosition ?groupPosition .
+                FILTER NOT EXISTS {
+                    ?x rdf:type ast:Pump ;
+                        ast:hasShelfFloor ?shelfFloor ;
+                        ast:hasGroupPosition ?groupPosition .
+                }
+            }");
+
+        if wrongPumps == null then print("RECONFIG> No misconfigured pumps"); else
+            print("RECONFIG> Misconfigured Pump(s) detected: repairing the model");
+
+            Int wrongPumpsLength = wrongPumps.length();
+            i = 0;
+            while i < wrongPumpsLength do
+                Pump wrongPump = wrongPumps.get(i);
+
+                print("RECONFIG> Misconfigured pump to remove: ");
+                print(wrongPump.shelfFloor);
+                print(wrongPump.groupPosition);
+
+                destroy(wrongPump);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongPumps);
         end
 
         print("RECONFIG> Reconfiguring the plants");
 
+        /**
+         *  Add plants that are not in the progam model
+         */
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT ?plantId ?idealMoisture
             WHERE {
-                ?x a ast:Plant ;
+                ?x rdf:type ast:Plant ;
                     ast:hasPlantId ?plantId ;
                     ast:hasIdealMoisture ?idealMoisture .
                 FILTER NOT EXISTS {
-                    ?y a prog:Plant .
-                        ?y prog:Plant_plantId ?plantId .
-                        ?y prog:Plant_idealMoisture ?idealMoisture .
+                    ?y a prog:Plant ;
+                        prog:Plant_plantId ?plantId ;
+                        prog:Plant_idealMoisture ?idealMoisture .
                 }
             }");
+
 
         if newPlants == null then print("RECONFIG> No new plants"); else
             print("RECONFIG> New Plant(s) detected: repairing the model");
 
-            Int plantsLength = newPlants.length();
+            Int newPlantsLength = newPlants.length();
             i = 0;
-            while i < plantsLength do
-                Plant plant = newPlants.get(i);
+            while i < newPlantsLength do
+                Plant newPlant = newPlants.get(i);
+
                 print("RECONFIG> New plant detected: ");
-                print(plant.plantId);
-                print(plant.idealMoisture);
+                print(newPlant.plantId);
+                print(newPlant.idealMoisture);
+
                 i = i + 1;
             end
         end
 
-        print("RECONFIG> Reconfiguring DONE...");
-    end
+        Plant p = new Plant("6", 50.0, "bad");
 
-    Unit bReconfigure()
+        /**
+         *  Destroy plants that are not in the asset model
+         */
+        List<Plant> wrongPlants = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_idealMoisture ?idealMoisture .
+                FILTER NOT EXISTS {
+                    ?y rdf:type ast:Plant ;
+                        ast:hasPlantId ?plantId ;
+                        ast:hasIdealMoisture ?idealMoisture .
+                }
+            }");
+
+        if wrongPlants == null then print("RECONFIG> No misconfigured plants"); else
+            print("RECONFIG> Misconfigured Plant(s) detected: repairing the model");
+
+            Int wrongPlantsLength = wrongPlants.length();
+            i = 0;
+            while i < wrongPlantsLength do
+                Plant wrongPlant = wrongPlants.get(i);
+
+                print("RECONFIG> Misconfigured plant to remove: ");
+                print(wrongPlant.plantId);
+                print(wrongPlant.idealMoisture);
+                
+                destroy(wrongPlant);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongPlants);
+        end
+
+        /**
+         *  Add health states that are not in the progam model
+         */
+        List<HealthState> newHealthStates = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?healthStateId ?healthStateName
+            WHERE {
+                ?healthState rdf:type ast:HealthState ;
+                    ast:hasHealthStateId ?healthStateId ;
+                    ast:hasHealthStateName ?healthStateName .
+                FILTER NOT EXISTS {
+                    ?y a prog:HealthState ;
+                        prog:HealthState_healthStateId ?healthStateId ;
+                        prog:HealthState_healthStateName ?healthStateName .
+                }
+            }");
+
+        if newHealthStates == null then print("RECONFIG> No new health states"); else
+            print("RECONFIG> New Health State(s) detected: repairing the model");
+
+            Int newHealthStatesLength = newHealthStates.length();
+            i = 0;
+            while i < newHealthStatesLength do
+                HealthState newHealthState = newHealthStates.get(i);
+
+                print("RECONFIG> New Health State detected: ");
+                print(newHealthState.healthStateId);
+                print(newHealthState.healthStateName);
+
+                i = i + 1;
+            end
+        end
+
+        /**
+         *  Destroy health states that are not in the asset model
+         */
+        List<HealthState> wrongHealthStates = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:HealthState ;
+                    prog:HealthState_healthStateId ?healthStateId ;
+                    prog:HealthState_healthStateName ?healthStateName .
+                FILTER NOT EXISTS {
+                    ?y rdf:type ast:HealthState ;
+                        ast:hasHealthStateId ?healthStateId ;
+                        ast:hasHealthStateName ?healthStateName .
+                }
+            }");
+
+        if wrongHealthStates == null then print("RECONFIG> No misconfigured health states"); else
+            print("RECONFIG> Misconfigured Health State(s) detected: repairing the model");
+
+            Int wrongHealthStatesLength = wrongHealthStates.length();
+            i = 0;
+            while i < wrongHealthStatesLength do
+                Plant wrongHealthState = wrongHealthStates.get(i);
+
+                print("RECONFIG> Misconfigured plant to remove: ");
+                print(wrongHealthState.healthStateId);
+                print(wrongHealthState.healthStateName);
+                
+                destroy(wrongHealthState);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongHealthStates);
+        end
+
+        print("RECONFIG> Reconfiguring DONE...");
+
         print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
-        Int i = 0;
+        i = 0;
         Int j = 0;
         // List of plants (ids of plants) that need to be watered
         List<PlantToWater> plantsToWater = null;
 
-        AssetModel assetModel = new AssetModel();
+        List<Plant> plants = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_idealMoisture ?idealMoisture .
+            }");
 
-        List<Plant> plants = assetModel.getPlants();
-
-        if plant != null then
+        if plants != null then
             Int plantsLength = plants.length();
 
             i = 0;
             while i < plantsLength do
                 Plant plant = plants.get(i);
-                Double plantMoisture = plant.getPotMoisture();
+                
+                if plant != null then
+                    Double plantMoisture = plant.getPotMoisture();
 
-                if (plantMoisture < plant.idealMoisture) then
-                    print("BEHAVIOUR> Plant that has to be watered: ");
-                    print(plant.plantId);
-                    PlantToWater plantToWater = new PlantToWater(plant.plantId);
-                    plantsToWater = new List(plantToWater, plantsToWater);
-                end
+                    if (plantMoisture < plant.idealMoisture) then
+                        print("BEHAVIOUR> Plant that has to be watered: ");
+                        print(plant.plantId);
+                        PlantToWater plantToWater = new PlantToWater(plant.plantId);
+                        plantsToWater = new List(plantToWater, plantsToWater);
+                    end
 
-                List<HealthState> healthStates = assetModel.getHealthStates();
-            
-                if healthStates != null then
-                    Int healthStatesLength = healthStates.length();
-                    j = 0;
-                    while j < healthStatesLength do
-                        HealthState healthState = healthStates.get(j);
-                        Double plantNdvi = plant.getNdvi();
+                    List<HealthState> healthStates = access("
+                        PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+                        SELECT DISTINCT ?obj
+                        WHERE {
+                            ?obj a prog:HealthState ;
+                                prog:HealthState_healthStateId ?healthStateId ;
+                                prog:HealthState_healthStateName ?healthStateName .
+                        }");
+                
+                    if healthStates != null then
+                        Int healthStatesLength = healthStates.length();
+                        j = 0;
+                        while j < healthStatesLength do
+                            HealthState healthState = healthStates.get(j);
+                            Double plantNdvi = plant.getNdvi();
 
-                        Double healthStateMinNdvi = healthState.minNdvi;
-                        Double healthStateMaxNdvi = healthState.maxNdvi;
+                            Double healthStateMinNdvi = healthState.minNdvi;
+                            Double healthStateMaxNdvi = healthState.maxNdvi;
 
-                        Boolean minOk = plantNdvi >= healthStateMinNdvi;
-                        Boolean maxOk = plantNdvi <= healthStateMaxNdvi;
+                            Boolean minOk = plantNdvi >= healthStateMinNdvi;
+                            Boolean maxOk = plantNdvi <= healthStateMaxNdvi;
 
-                        if minOk then
-                            if maxOk then
-                                print("BEHAVIOUR> Plant in good health");
-                                plant.healthState = healthState.name;
+                            if minOk then
+                                if maxOk then
+                                    print("BEHAVIOUR> Plant in good health");
+                                    plant.healthState = healthState.name;
+                                end
                             end
+                            
+                            j = j + 1;
                         end
                     end
                 end
+                
+                i = i + 1;
             end
         end
 
         print("BEHAVIOUR> Behavioural reconfiguration DONE...");
-    end
-
-    Unit printAssetModelData()
-        Int lengthPots = 0;
-        Int lengthShelves = 0;
-        Int lengthPumps = 0;
-        Int lengthPlants = 0;
-        Int i = 0;
-
-        AssetModel assetModel = new AssetModel();
-        
-        
-        print("INFO> Pots from asset model + influx data");
-
-        List<Pot> pots = assetModel.getPots(config);
-        lengthPots = pots.length();
-        while i < lengthPots do
-            print("Pot: ");
-            print(i);
-            Pot pot = pots.get(i);
-            print("shelfFloor: ");
-            print(pot.shelfFloor);
-            print(" groupPosition: ");
-            print(pot.groupPosition);
-            print(" potPosition: ");
-            print(pot.potPosition);
-            print(" moisture: ");
-            Double moisture = pot.getMoisture();
-            print(moisture);
-            i = i+1;
-        end
-
-        print("INFO> Plants from asset model + influx data");
-        List<Plant> plants = assetModel.getPlants(config);
-        lengthPlants = plants.length();
-        i = 0;
-        while i < lengthPlants do
-            Plant plant = plants.get(i);
-            print("plantId: ");
-            print(plant.plantId);
-            Double ndvi = plant.getNdvi();
-            print(" ndvi: ");
-            print(ndvi);
-            i = i+1;
-        end
-        
-        print("INFO> Shelves from asset model + influx data");
-        List<Shelf> shelves = assetModel.getShelves(config);
-        lengthShelves = shelves.length();
-        i = 0;
-        while i < lengthShelves do
-            Shelf shelf = shelves.get(i);
-            print("shelfFloor: ");
-            print(shelf.shelfFloor);
-            Double humidity = shelf.getHumidity();
-            print(" humidity: ");
-            print(humidity);
-            Double temperature = shelf.getTemperature();
-            print(" temperature: ");
-            print(temperature);
-            i = i+1;
-        end
-
-        print("INFO> Pumps from asset model + influx data");
-        List<Pump> pumps = assetModel.getPumps(config);
-        lengthPumps = pumps.length();
-        i = 0;
-        while i < lengthPumps do
-            Pump pump = pumps.get(i);
-            print("shelfFloor: ");
-            print(pump.shelfFloor);
-            print(" groupPosition: ");
-            print(pump.groupPosition);
-            Double pumpedWater = pump.getPumpedWater();
-            print(" pumpedWater: ");
-            print(pumpedWater);
-            i = i+1;
-        end
     end
 end
 
 main
     AssetModel assetModel = new AssetModel();
     assetModel.reconfigure();
-    assetModel.bReconfigure();
 
     breakpoint;
 end
