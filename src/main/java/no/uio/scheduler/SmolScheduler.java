@@ -26,6 +26,7 @@ public class SmolScheduler {
   private final Map<Integer, String[]> shelfCollectorConfigPaths;
   private final String queueUrl;
   private final REPL repl;
+  private int executionTime;
 
   private long assetModelLastModified = 0;
 
@@ -57,10 +58,20 @@ public class SmolScheduler {
               configMap.get("local_shelf_" + (i+1) + "_data_collector_config_path").toString(),
               configMap.get("shelf_" + (i+1) + "_data_collector_config_path").toString()});
     }
+
+    this.executionTime = Integer.parseInt(this.utils.readSchedulerConfig().get("interval_seconds").toString());
   }
 
   public REPL getRepl() {
     return this.repl;
+  }
+
+  public int getExecutionTime() {
+    return this.executionTime;
+  }
+
+  public void setExecutionTime(int executionTime) {
+    this.executionTime = executionTime;
   }
 
   public void run() throws JMSException {
