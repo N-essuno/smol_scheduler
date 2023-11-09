@@ -27,7 +27,7 @@ public class Main {
     SmolScheduler smolScheduler = new SmolScheduler(utils, greenhouseINIManager);
 
     // Execute the Subscribe into a separate thread
-    Thread subscriberThread = new Thread(() -> {
+    Thread subscriberStoreThread = new Thread(() -> {
       try {
         Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("broker_url").toString(), smolScheduler);
 //        subscriber.subscribe(utils.readQueueConfig().get("queue_name").toString());
@@ -40,7 +40,22 @@ public class Main {
         e.printStackTrace();
       }
     });
-    subscriberThread.start();
+    subscriberStoreThread.start();
+
+    Thread subscriberTimeThread = new Thread(() -> {
+      try {
+        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("broker_url").toString(), smolScheduler);
+//        subscriber.subscribe(utils.readQueueConfig().get("queue_name").toString());
+        subscriber.subscribe("controller.1.exec.time");
+
+        Thread.sleep(Long.MAX_VALUE);
+      } catch (JMSException e) {
+        e.printStackTrace();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+    subscriberTimeThread.start();
 
     // use -nojar flag to run the program from an IDE, it will use files from src/main/resources
     // directory
@@ -117,8 +132,7 @@ public class Main {
     utils.printMessage("Configs checked", false);
 
     // run the scheduler every interval_seconds seconds
-    int intervalSeconds =
-        Integer.parseInt(utils.readSchedulerConfig().get("interval_seconds").toString());
+    int intervalSeconds = smolScheduler.getExecutionTime();
     utils.printMessage("Scheduler interval set to " + intervalSeconds + " seconds ", false);
 
     // do first sync of configuration from asset model
