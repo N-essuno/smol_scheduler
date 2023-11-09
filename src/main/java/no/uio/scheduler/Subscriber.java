@@ -4,6 +4,8 @@ import jakarta.jms.*;
 import no.uio.microobject.runtime.REPL;
 import org.apache.qpid.jms.JmsConnectionFactory;
 
+import java.util.Arrays;
+
 public class Subscriber {
     private final Connection connection;
     private final SmolScheduler scheduler;
@@ -25,14 +27,19 @@ public class Subscriber {
             @Override
             public void onMessage(Message message) {
                 try {
-                    if (message instanceof TextMessage) {
-                        TextMessage textMessage = (TextMessage) message;
+                    if (message instanceof TextMessage textMessage) {
                         String text = textMessage.getText();
 
+                        String msg = text.split("[\"MSG\"]")[1];
                         // Process the received message as needed
-                        System.out.println("Received message: " + text);
-                        REPL repl = scheduler.getRepl();
-                        repl.getInterpreter().getTripleManager().regenerateTripleStoreModel();
+                        System.out.println("Received message: " + msg);
+
+                        if (queueName.equals("controller.1.asset.model")) {
+                            REPL repl = scheduler.getRepl();
+                            repl.getInterpreter().getTripleManager().regenerateTripleStoreModel();
+                        } else if (queueName.equals("controller.1.exec.time")) {
+                            scheduler.setExecutionTime(Integer.parseInt(msg));
+                        }
                     }
                 } catch (JMSException e) {
                     e.printStackTrace();
