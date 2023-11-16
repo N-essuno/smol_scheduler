@@ -334,8 +334,8 @@ ast:WaterTank rdf:type owl:Class ;
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#badHealthState
 ast:badHealthState rdf:type owl:NamedIndividual ,
                             ast:HealthState ;
-                   ast:hasMaxNdvi "0.32"^^xsd:string ;
-                   ast:hasMinNdvi "-0.33"^^xsd:string ;
+                   ast:hasMaxNdvi "0.32"^^xsd:double ;
+                   ast:hasMinNdvi "-0.33"^^xsd:double ;
                    ast:hasName "badHealthState"^^xsd:string .
 
 
@@ -356,16 +356,16 @@ ast:basilicum2 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#deadHealthState
 ast:deadHealthState rdf:type owl:NamedIndividual ,
                              ast:HealthState ;
-                    ast:hasMaxNdvi "-0.34"^^xsd:string ;
-                    ast:hasMinNdvi "-1.0"^^xsd:string ;
+                    ast:hasMaxNdvi "-0.34"^^xsd:double ;
+                    ast:hasMinNdvi "-1.0"^^xsd:double ;
                     ast:hasName "deadHealthState"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#goodHealthState
 ast:goodHealthState rdf:type owl:NamedIndividual ,
                              ast:HealthState ;
-                    ast:hasMaxNdvi "1.0"^^xsd:string ;
-                    ast:hasMinNdvi "0.33"^^xsd:string ;
+                    ast:hasMaxNdvi "1.0"^^xsd:double ;
+                    ast:hasMinNdvi "0.33"^^xsd:double ;
                     ast:hasName "goodHealthState"^^xsd:string .
 
 
