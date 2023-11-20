@@ -36,6 +36,7 @@ public class Subscriber {
 
                         if (queueName.equals("controller.1.asset.model")) {
                             REPL repl = scheduler.getRepl();
+                            assert repl.getInterpreter() != null;
                             repl.getInterpreter().getTripleManager().regenerateTripleStoreModel();
                         } else if (queueName.equals("controller.1.exec.time")) {
                             scheduler.setExecutionTime(Integer.parseInt(msg));
@@ -57,7 +58,5 @@ public class Subscriber {
                 e.printStackTrace();
             }
         }));
-    }
-
     }
 }
