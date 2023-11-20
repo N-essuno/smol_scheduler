@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import no.uio.microobject.main.Settings;
+import no.uio.microobject.main.ReasonerMode;
 import no.uio.microobject.runtime.REPL;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.jena.query.ARQ;
@@ -267,7 +268,7 @@ public class SmolScheduler {
     String assetModel = getAssetModel(greenhouseAssetModel);
     assetModel = ""; // TODO: remove the asset model at once when it's done
     String tripleStoreUrl = "http://localhost:3030/GreenHouse";
-    String reasoner = "off"; // we don't want the reasoner
+    ReasonerMode reasoner = ReasonerMode.off; // we don't want the reasoner
 
     return new Settings(
         verbose,
