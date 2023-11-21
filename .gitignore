@@ -2,6 +2,8 @@
 src/main/resources/*.yml
 src/main/resources/*.ini
 
+.DS_Store
+
 # IDE exclude paths
 .vscode/
 .idea/
