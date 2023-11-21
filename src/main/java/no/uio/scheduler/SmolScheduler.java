@@ -15,7 +15,6 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.jetbrains.annotations.NotNull;
 import jakarta.jms.JMSException;
-import org.json.JSONObject;
 
 public class SmolScheduler {
   private final Utils utils;
@@ -76,7 +75,7 @@ public class SmolScheduler {
   }
 
   public void run() throws JMSException {
-    this.utils.printMessage("Start run SmolScheduler", false);
+    this.utils.printMessage("Start run SmolScheduler at " + new Date(), false);
 
     // start asset model sync thread: check asset model edits and updates configuration
     syncAssetModel();
@@ -92,6 +91,7 @@ public class SmolScheduler {
     this.utils.printMessage("End water control", false);
 
     this.utils.printMessage("End run SmolScheduler", false);
+    this.utils.printMessage("Waiting for " + getExecutionTime() + " seconds...", false);
   }
 
   private ResultSet execSmol() {
@@ -274,8 +274,8 @@ public class SmolScheduler {
         verbose,
         materialize,
         kgOutput,
-        assetModel,
         tripleStoreUrl,
+        assetModel,
         domainPrefix,
         progPrefix,
         runPrefix,
