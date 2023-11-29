@@ -107,8 +107,10 @@ public class SmolScheduler {
     this.utils.printMessage("Start querying lifted state...", true);
     String needWaterQuery =
         "PREFIX prog: <https://github.com/Edkamb/SemanticObjects/Program#>\n"
-            + "SELECT ?plantId "
-            + "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId . }";
+            + "SELECT DISTINCT ?plantId ?pumpGpioPin ?pumpId "
+            + "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId ; "
+            + "prog:PlantToWater_pumpGpioPin ?pumpGpioPin ; "
+            + "prog:PlantToWater_pumpId ?pumpId . }";
 
     assert this.repl.getInterpreter() != null;
     ResultSet plantsToWater = this.repl.getInterpreter().query(needWaterQuery);
@@ -121,25 +123,33 @@ public class SmolScheduler {
   }
 
   private void waterControl(ResultSet plantsToWater) throws JMSException {
-    GreenhouseModelReader greenhouseModelReader =
-        new GreenhouseModelReader(greenhouseAssetModelFile, ModelTypeEnum.ASSET_MODEL);
 
     // list of pump pins to activate
-    List<Integer> pumpPins = new ArrayList<>();
+    List<List<Integer>> pumps = new ArrayList<>();
 
     while (plantsToWater.hasNext()) {
       QuerySolution plantToWater = plantsToWater.next();
       String plantId = plantToWater.get("?plantId").asLiteral().toString();
       this.utils.printMessage("plantToWater: " + plantId, false);
+      // Split the content I retrieve for pumpPin based on the delimiter ^^ and take the first element
+      String pumpPin = plantToWater.get("?pumpGpioPin").asLiteral().toString().split("\\^\\^")[0];
+//      String pumpPin = plantToWater.get("?pumpGpioPin").asLiteral().toString();
+      String pumpId = plantToWater.get("?pumpId").asLiteral().toString();
+      this.utils.printMessage("pumpPin: " + pumpPin + " pumpId: " + pumpId, false);
 
-      // get pump pin which waters plant with id plantId
-      int pumpPin = greenhouseModelReader.getPumpPinForPlant(plantId);
-      this.utils.printMessage("pumpPin: " + pumpPin, false);
-      pumpPins.add(pumpPin);
+      List<Integer> pump = new ArrayList<>();
+      pump.add(Integer.parseInt(pumpPin));
+      pump.add(Integer.parseInt(pumpId));
+
+      // Add the List of the two elements into the pumps List
+      pumps.add(pump);
     }
     this.utils.printMessage("Start watering", false);
 
-    startWaterActuator(pumpPins);
+//    startWaterActuator(pumpPins);
+    startWaterActuator(pumps);
+
+    this.utils.printMessage("End watering", false);
   }
 
   @NotNull
@@ -151,30 +161,21 @@ public class SmolScheduler {
     return cmds;
   }
 
-  private void startWaterActuator(List<Integer> pumpPinsToActivate) throws JMSException {
+  private void startWaterActuator(List<List<Integer>> pumpPinsToActivate) throws JMSException {
     this.utils.printMessage("Start water actuator", false);
 
     if (!pumpPinsToActivate.isEmpty()) {
-//      final List<String> cmds = getStrings(pumpPinsToActivate);
-//
-//      this.utils.printMessage("Water cmds: " + cmds, false);
-
       // We are not gonna connect to any machines if we are in local
       if (this.utils.getExeuctionMode() == ExecutionModeEnum.REMOTE) {
-//        Publisher publisher = new Publisher(queueUrl);
-//
-//        try {
-//          publisher.publish("actuator.1.water", cmds.toString());
-//        } catch (Exception e) {
-//          e.printStackTrace();
-//        }
-        for (Integer pumpPin : pumpPinsToActivate) {
+        for (List<Integer> pumps : pumpPinsToActivate) {
           Publisher publisher = new Publisher(queueUrl);
 
+          // We are going to use the list retrieve with element in position 0 being the pump pin
+          // and the element in position 1 being the pump id
           try {
-            String command =  "[WATER]" + String.valueOf(pumpPin) + " 2";
+            String command =  "[WATER]" + String.valueOf(pumps.get(0)) + " 2";
             this.utils.printMessage("Water cmd: " + command, false);
-            publisher.publish("actuator.1.water", command);
+            publisher.publish("actuator." + pumps.get(1) + ".water", command);
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -267,7 +268,7 @@ public class SmolScheduler {
 
     String assetModel = getAssetModel(greenhouseAssetModel);
     assetModel = ""; // TODO: remove the asset model at once when it's done
-    String tripleStoreUrl = "http://localhost:3030/GreenHouse";
+    String tripleStoreUrl = this.utils.readSchedulerConfig().get("triplestore_url").toString();
     ReasonerMode reasoner = ReasonerMode.off; // we don't want the reasoner
 
     return new Settings(
