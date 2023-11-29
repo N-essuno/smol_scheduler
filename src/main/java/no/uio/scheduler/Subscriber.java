@@ -30,7 +30,7 @@ public class Subscriber {
                     if (message instanceof TextMessage textMessage) {
                         String text = textMessage.getText();
 
-                        String msg = text.split("[\"MSG\"]")[1];
+                        String msg = text.split("[MSG]")[1];
                         // Process the received message as needed
                         System.out.println("Received message: " + msg);
 
