@@ -148,6 +148,7 @@ public class Main {
         smolScheduler.run();
       } catch (JMSException e) {
         // Handle the exception (e.g., log it or take appropriate action)
+        e.printStackTrace();
       }
     }, 0, intervalSeconds, TimeUnit.SECONDS);
   }
