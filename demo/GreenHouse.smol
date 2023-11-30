@@ -5,7 +5,7 @@ abstract class Twin() end
  *  This information is needed by the scheduler to send to signal to water
  *  @class PlantToWater
  */
-class PlantToWater extends Twin (String plantId, String pumpGpioPin, String pumpId)
+class PlantToWater extends Twin (String plantId, Int pumpGpioPin, String pumpId)
 end
 
 /**
@@ -15,7 +15,7 @@ end
  *  about which plant contains
  *  @class Plant
  */
-class Plant extends Twin (String plantId, Double idealMoisture, String healthState)
+class Plant extends Twin (String plantId, Double idealMoisture, String plantType, String healthState)
     Double getNdvi()
         Double healthState = 0.0;
         List<Double> influxReturn = null;
@@ -74,7 +74,7 @@ end
  *  Each pot is associated with a moisture sensor.
  *  @class Pot
  */
-class Pot extends Twin (String shelfFloor, String groupPosition, String potPosition) 
+class Pot extends Twin (String shelfFloor, String groupPosition, String potPosition, String pumpId, String plantId) 
     // Return last moisture detection for the pot
     Double getMoisture()
         Double moisture = 0.0;
@@ -120,7 +120,7 @@ end
  *  the asset model, but it can be reconfigured by the program model.
  *  @class Pump
  */
-class Pump extends Twin (String pumpGpioPin, String pumpId)
+class Pump extends Twin (Int pumpGpioPin, String pumpId)
 end
 
 /**
@@ -160,27 +160,213 @@ end
  *  @class AssetModel
  */
 class AssetModel extends Twin ()
-    Unit reconfigure()
-        print("RECONFIG> Reconfiguring the asset model...");
-        print("RECONFIG> Reconfiguring the pots");
+    /**
+     *  Method invoke the reconfigure the pumps. It will add pumps that are not
+     *  in the program model and destroy pumps that are not in the asset model.
+     *
+     *  @method reconfigurePumps
+     */
+    Unit reconfigurePump()
+        print("RECONFIG> Reconfiguring the pumps");
         Int i = 0;
 
+        /**
+         *  Add pumps that are not in the program model
+         */
+        List<Pump> newPumps = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?pumpGpioPin ?pumpId ?plantId
+            WHERE {
+                ?pump rdf:type ast:Pump ;
+                    ast:hasPumpGpioPin ?pumpGpioPin ;
+                    ast:hasPumpId ?pumpId .
+                FILTER NOT EXISTS {
+                    ?y a prog:Pump ;
+                        prog:Pump_pumpGpioPin ?pumpGpioPin ;
+                        prog:Pump_pumpId ?pumpId .
+                }
+            }");
+
+        if newPumps == null then print("RECONFIG> No new pumps"); else
+            print("RECONFIG> New Pump(s) detected: repairing the model");
+
+            Int newPumpsLength = newPumps.length();
+            i = 0;
+            while i < newPumpsLength do
+                Pump newPump = newPumps.get(i);
+
+                print("RECONFIG> New pump detected: ");
+                print(newPump.pumpId);
+                print(newPump.pumpGpioPin);
+                i = i + 1;
+            end
+
+            print("RECONFIG> Pump(s) added");
+        end
+
+        /**
+         *  Destroy pumps that are not in the asset model
+         */
+        List<Pump> wrongPumps = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
+                    prog:Pump_pumpId ?pumpId .
+                FILTER NOT EXISTS {
+                    ?x rdf:type ast:Pump ;
+                        ast:hasPumpGpioPin ?pumpGpioPin ;
+                        ast:hasPumpId ?pumpId .
+                }
+            }");
+
+        if wrongPumps == null then print("RECONFIG> No misconfigured pumps"); else
+            print("RECONFIG> Misconfigured Pump(s) detected: repairing the model");
+
+            Int wrongPumpsLength = wrongPumps.length();
+            i = 0;
+            while i < wrongPumpsLength do
+                Pump wrongPump = wrongPumps.get(i);
+
+                print("RECONFIG> Misconfigured pump to remove: ");
+                print(wrongPump.pumpId);
+
+                destroy(wrongPump);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongPumps);
+        end
+    end
+
+    /**
+     *  Method invoked to reconfigure plants. It will add plants that are not
+     *  in the program model and destroy plants that are not in the asset model.
+     *
+     *  @method reconfigurePlants
+     */
+    Unit reconfigurePlants()
+        print("RECONFIG> Reconfiguring the plants");
+        Int i = 0;
+
+        /**
+         *  Add plants that are not in the program model
+         */
+        List<Plant> newPlants = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?plantId ?idealMoisture ?plantType
+            WHERE {
+                ?x rdf:type ast:Plant ;
+                    ast:hasPlantId ?plantId ;
+                    ast:hasIdealMoisture ?idealMoisture ;
+                    ast:hasPlantType ?plantType .
+                FILTER NOT EXISTS {
+                    ?y a prog:Plant ;
+                        prog:Plant_plantId ?plantId ;
+                        prog:Plant_idealMoisture ?idealMoisture ;
+                        prog:Plant_plantType ?plantType .
+                }
+            }");
+
+
+        if newPlants == null then print("RECONFIG> No new plants"); else
+            print("RECONFIG> New Plant(s) detected: repairing the model");
+
+            Int newPlantsLength = newPlants.length();
+            i = 0;
+            while i < newPlantsLength do
+                Plant newPlant = newPlants.get(i);
+
+                print("RECONFIG> New plant detected: ");
+                print(newPlant.plantId);
+                print(newPlant.idealMoisture);
+                print(newPlant.plantType);
+
+                i = i + 1;
+            end
+
+            print("RECONFIG> Plant(s) added");
+        end
+
+        Plant p = new Plant("6", 50.0, "Basilicum", "bad");
+
+        /**
+         *  Destroy plants that are not in the asset model
+         */
+        List<Plant> wrongPlants = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_idealMoisture ?idealMoisture ;
+                    prog:Plant_plantType ?plantType .
+                FILTER NOT EXISTS {
+                    ?y rdf:type ast:Plant ;
+                        ast:hasPlantId ?plantId ;
+                        ast:hasIdealMoisture ?idealMoisture ;
+                        ast:hasPlantType ?plantType .
+                }
+            }");
+
+        if wrongPlants == null then print("RECONFIG> No misconfigured plants"); else
+            print("RECONFIG> Misconfigured Plant(s) detected: repairing the model");
+
+            Int wrongPlantsLength = wrongPlants.length();
+            i = 0;
+            while i < wrongPlantsLength do
+                Plant wrongPlant = wrongPlants.get(i);
+
+                print("RECONFIG> Misconfigured plant to remove: ");
+                print(wrongPlant.plantId);
+                print(wrongPlant.idealMoisture);
+                print(wrongPlant.plantType);
+                
+                destroy(wrongPlant);
+                
+                i = i + 1;
+            end
+
+            destroy(wrongPlants);
+        end
+    end
+
+    /**
+     *  Method invoked to reconfigure pots. It will add pots that are not
+     *  in the program model and destroy pots that are not in the asset model.
+     *
+     *  @method reconfigurePots
+     */
+    Unit reconfigurePots()
+        print("RECONFIG> Reconfiguring the pots");
+        Int i = 0;
+        
         /**
          *  Add pots that are not in the program model
          */
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor ?groupPosition ?potPosition
+            SELECT ?shelfFloor ?groupPosition ?potPosition ?pumpId ?plantId
             WHERE {
                 ?x rdf:type ast:Pot ; 
                     ast:hasShelfFloor ?shelfFloor ;
                     ast:hasGroupPosition ?groupPosition ;
-                    ast:hasPotPosition ?potPosition .
+                    ast:hasPotPosition ?potPosition ;
+                    ast:isWateredBy ?pump ;
+                    ast:hasPlant ?plant .
+                ?pump rdf:type ast:Pump ;
+                    ast:hasPumpId ?pumpId .
+                ?plant rdf:type ast:Plant ;
+                    ast:hasPlantId ?plantId .
                 FILTER NOT EXISTS {
                     ?y a prog:Pot ; 
                         prog:Pot_helfFloor ?shelfFloor ;
                         prog:Pot_groupPosition ?groupPosition ;
-                        prog:Pot_potPosition ?potPosition .
+                        prog:Pot_potPosition ?potPosition ;
+                        prog:Pot_pumpId ?pumpId ;
+                        prog:Pot_plantId ?plantId .
                 }
             }");
 
@@ -196,8 +382,12 @@ class AssetModel extends Twin ()
                 print(newPot.shelfFloor);
                 print(newPot.groupPosition);
                 print(newPot.potPosition);
+                print(newPot.pumpId);
+                print(newPot.plantId);
                 i = i + 1;
             end
+
+            print("RECONFIG> Pot(s) added");
         end
 
         /**
@@ -239,150 +429,17 @@ class AssetModel extends Twin ()
 
             destroy(wrongPots);
         end
+    end
 
-        print("RECONFIG> Reconfiguring the pumps");
-
-        /**
-         *  Add pumps that are not in the program model
-         */
-        List<Pump> newPumps = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?pumpGpioPin ?pumpId ?shelfFloor
-            WHERE {
-                ?x rdf:type ast:Pump ;
-                    ast:hasPumpGpioPin ?pumpGpioPin ;
-                    ast:hasPumpId ?pumpId .
-                FILTER NOT EXISTS {
-                    ?y a prog:Pump ;
-                        prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                        prog:Pump_pumpId ?pumpId .
-                }
-            }");
-
-        if newPumps == null then print("RECONFIG> No new pumps"); else
-            print("RECONFIG> New Pump(s) detected: repairing the model");
-
-            Int newPumpsLength = newPumps.length();
-            i = 0;
-            while i < newPumpsLength do
-                Pump newPump = newPumps.get(i);
-
-                print("RECONFIG> New pump detected: ");
-                print(newPump.pumpId);
-                i = i + 1;
-            end
-        end
-
-        /**
-         *  Destroy pumps that are not in the asset model
-         */
-        List<Pump> wrongPumps = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT DISTINCT ?obj
-            WHERE {
-                ?obj a prog:Pump ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                    prog:Pump_pumpId ?pumpId .
-                FILTER NOT EXISTS {
-                    ?x rdf:type ast:Pump ;
-                        ast:hasPumpGpioPin ?pumpGpioPin ;
-                        ast:hasPumpId ?pumpId .
-                }
-            }");
-
-        if wrongPumps == null then print("RECONFIG> No misconfigured pumps"); else
-            print("RECONFIG> Misconfigured Pump(s) detected: repairing the model");
-
-            Int wrongPumpsLength = wrongPumps.length();
-            i = 0;
-            while i < wrongPumpsLength do
-                Pump wrongPump = wrongPumps.get(i);
-
-                print("RECONFIG> Misconfigured pump to remove: ");
-                print(wrongPump.pumpId);
-
-                destroy(wrongPump);
-                
-                i = i + 1;
-            end
-
-            destroy(wrongPumps);
-        end
-
-        print("RECONFIG> Reconfiguring the plants");
-
-        /**
-         *  Add plants that are not in the program model
-         */
-        List<Plant> newPlants = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?plantId ?idealMoisture
-            WHERE {
-                ?x rdf:type ast:Plant ;
-                    ast:hasPlantId ?plantId ;
-                    ast:hasIdealMoisture ?idealMoisture .
-                FILTER NOT EXISTS {
-                    ?y a prog:Plant ;
-                        prog:Plant_plantId ?plantId ;
-                        prog:Plant_idealMoisture ?idealMoisture .
-                }
-            }");
-
-
-        if newPlants == null then print("RECONFIG> No new plants"); else
-            print("RECONFIG> New Plant(s) detected: repairing the model");
-
-            Int newPlantsLength = newPlants.length();
-            i = 0;
-            while i < newPlantsLength do
-                Plant newPlant = newPlants.get(i);
-
-                print("RECONFIG> New plant detected: ");
-                print(newPlant.plantId);
-                print(newPlant.idealMoisture);
-
-                i = i + 1;
-            end
-        end
-
-        Plant p = new Plant("6", 50.0, "bad");
-
-        /**
-         *  Destroy plants that are not in the asset model
-         */
-        List<Plant> wrongPlants = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT DISTINCT ?obj
-            WHERE {
-                ?obj a prog:Plant ;
-                    prog:Plant_plantId ?plantId ;
-                    prog:Plant_idealMoisture ?idealMoisture .
-                FILTER NOT EXISTS {
-                    ?y rdf:type ast:Plant ;
-                        ast:hasPlantId ?plantId ;
-                        ast:hasIdealMoisture ?idealMoisture .
-                }
-            }");
-
-        if wrongPlants == null then print("RECONFIG> No misconfigured plants"); else
-            print("RECONFIG> Misconfigured Plant(s) detected: repairing the model");
-
-            Int wrongPlantsLength = wrongPlants.length();
-            i = 0;
-            while i < wrongPlantsLength do
-                Plant wrongPlant = wrongPlants.get(i);
-
-                print("RECONFIG> Misconfigured plant to remove: ");
-                print(wrongPlant.plantId);
-                print(wrongPlant.idealMoisture);
-                
-                destroy(wrongPlant);
-                
-                i = i + 1;
-            end
-
-            destroy(wrongPlants);
-        end
+    /**
+     *  Method invoked to reconfigure health state. It will add those that are not
+     *  in the program model and destroy health states that are not in the asset model.
+     *
+     *  @method reconfigureHealthStates
+     */
+    Unit reconfigureHealthStates()
+        print("RECONFIG> Reconfiguring the health states");
+        Int i = 0;
 
         /**
          *  Add health states that are not in the program model
@@ -418,6 +475,8 @@ class AssetModel extends Twin ()
 
                 i = i + 1;
             end
+
+            print("RECONFIG> Health State(s) added");
         end
 
         /**
@@ -458,11 +517,21 @@ class AssetModel extends Twin ()
 
             destroy(wrongHealthStates);
         end
+    end
+
+    Unit reconfigure()
+        print("RECONFIG> Reconfiguring the asset model...");
+
+        // Calling the reconfiguration methods
+        this.reconfigurePump();
+        this.reconfigurePlants();
+        this.reconfigurePots();
+        this.reconfigureHealthStates();
 
         print("RECONFIG> Reconfiguring DONE...");
 
         print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
-        i = 0;
+        Int i = 0;
         Int j = 0;
         // List of plants (ids of plants) that need to be watered
         List<PlantToWater> plantsToWater = null;
@@ -489,8 +558,46 @@ class AssetModel extends Twin ()
                     if (plantMoisture < plant.idealMoisture) then
                         print("BEHAVIOUR> Plant that has to be watered: ");
                         print(plant.plantId);
-                        PlantToWater plantToWater = new PlantToWater(plant.plantId);
-                        plantsToWater = new List(plantToWater, plantsToWater);
+
+                        // Get from SPARQL the pumpId of the pot that contain the plant with plantId
+                        Pot potToWater = access("
+                            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+
+                            SELECT DISTINCT ?obj
+                            WHERE {
+                                ?obj a prog:Pot ;
+                                    prog:Pot_pumpId ?pumpId ;
+                                    prog:Pot_plantId %1 .
+                            }
+                        ", plant.plantId);
+
+                        print(potToWater.pumpId);
+
+                        List<Pump> pumpsThatWater = access("
+                            SELECT ?obj
+                            WHERE {
+                            ?obj a prog:Pump ;
+                                    prog:Pump_pumpId ?pumpId ;
+                                    prog:Pump_pumpGpioPin ?pumpGpioPin .
+                            ?pot a prog:Pot ;
+                                    prog:Pot_plantId ?plantId ;
+                                    prog:Pot_pumpId ?pumpId .
+                            ?plant a prog:Plant ;
+                                prog:Plant_plantId %1 .
+                            }
+                        ", plant.plantId);
+
+                        if pumpsThatWater != null then
+                            Pump pumpThatWater = pumpsThatWater.get(0);
+
+                            PlantToWater plantToWater = new PlantToWater(plant.plantId, pumpThatWater.pumpGpioPin, pumpThatWater.pumpId);
+                            plantsToWater = new List(plantToWater, plantsToWater);
+
+                            print("BEHAVIOUR> pump id: ");
+                            print(pumpThatWater.pumpId);
+                        else
+                            print("Error in creating an object");
+                        end
                     end
 
                     List<HealthState> healthStates = access("
