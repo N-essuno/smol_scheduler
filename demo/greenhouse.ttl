@@ -346,7 +346,7 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum1
 ast:basilicum1 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "90.0"^^xsd:double ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
                ast:hasPlantId "1"^^xsd:string ;
                ast:hasPlantType "Basilicum"^^xsd:string .
 
@@ -354,7 +354,7 @@ ast:basilicum1 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum2
 ast:basilicum2 rdf:type owl:NamedIndividual ,
                         ast:Basilicum ;
-               ast:hasIdealMoisture "90.0"^^xsd:double ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
                ast:hasPlantId "2"^^xsd:string ;
                ast:hasPlantType "Basilicum"^^xsd:string .
 
