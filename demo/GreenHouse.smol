@@ -529,7 +529,9 @@ class AssetModel extends Twin ()
         this.reconfigureHealthStates();
 
         print("RECONFIG> Reconfiguring DONE...");
+    end
 
+    Unit decision()
         print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
         Int i = 0;
         Int j = 0;
@@ -645,6 +647,7 @@ end
 main
     AssetModel assetModel = new AssetModel();
     assetModel.reconfigure();
+    assetModel.decision();
 
     breakpoint;
 end
