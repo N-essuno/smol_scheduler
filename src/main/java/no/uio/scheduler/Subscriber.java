@@ -38,6 +38,10 @@ public class Subscriber {
                             REPL repl = scheduler.getRepl();
                             assert repl.getInterpreter() != null;
                             repl.getInterpreter().getTripleManager().regenerateTripleStoreModel();
+                            repl.getInterpreter().evalCall(
+                                    repl.getInterpreter().getObjectNames("AssetModel").get(0),
+                                    "AssetModel",
+                                    "reconfigure");
                         } else if (queueName.equals("controller.1.exec.time")) {
                             scheduler.setExecutionTime(Integer.parseInt(msg));
                         }
