@@ -161,6 +161,30 @@ end
  */
 class AssetModel extends Twin ()
     /**
+     *  Method to remove the WaterToPlant that was previously created
+     *
+     *  @method removeWaterToPlant
+     */
+    Unit removeWaterToPlant()
+        List<WaterToPlant> waterToPlants = access("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?obj
+            WHERE {
+                ?obj a prog:WaterToPlant .
+            }");
+
+        if waterToPlants != null then
+            Int waterToPlantsLength = waterToPlants.length();
+            Int i = 0;
+            while i < waterToPlantsLength do
+                WaterToPlant waterToPlant = waterToPlants.get(i);
+                destroy(waterToPlant);
+                i = i + 1;
+            end
+        end
+    end
+
+    /**
      *  Method invoke the reconfigure the pumps. It will add pumps that are not
      *  in the program model and destroy pumps that are not in the asset model.
      *
@@ -532,6 +556,7 @@ class AssetModel extends Twin ()
     end
 
     Unit decision()
+        this.removeWaterToPlant();
         print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
         Int i = 0;
         Int j = 0;
