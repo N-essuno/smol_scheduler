@@ -359,6 +359,22 @@ ast:basilicum2 rdf:type owl:NamedIndividual ,
                ast:hasPlantType "Basilicum"^^xsd:string .
 
 
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum3
+ast:basilicum1 rdf:type owl:NamedIndividual ,
+                        ast:Basilicum ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
+               ast:hasPlantId "3"^^xsd:string ;
+               ast:hasPlantType "Basilicum"^^xsd:string .
+
+
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#basilicum4
+ast:basilicum2 rdf:type owl:NamedIndividual ,
+                        ast:Basilicum ;
+               ast:hasIdealMoisture "50.0"^^xsd:double ;
+               ast:hasPlantId "4"^^xsd:string ;
+               ast:hasPlantType "Basilicum"^^xsd:string .
+
+
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#deadHealthState
 ast:deadHealthState rdf:type owl:NamedIndividual ,
                              ast:HealthState ;
@@ -408,7 +424,7 @@ ast:pot2 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pot3
 ast:pot3 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
-         ast:hasPlant ast:stemor1 ;
+         ast:hasPlant ast:basilicum3 ;
          ast:isWateredBy ast:pump2 ;
          ast:hasGroupPosition "left"^^xsd:string ;
          ast:hasMoistureAdcChannel "1"^^xsd:string ;
@@ -419,7 +435,7 @@ ast:pot3 rdf:type owl:NamedIndividual ,
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#pot4
 ast:pot4 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
-         ast:hasPlant ast:stemor2 ;
+         ast:hasPlant ast:basilicum4 ;
          ast:isWateredBy ast:pump2 ;
          ast:hasGroupPosition "left"^^xsd:string ;
          ast:hasMoistureAdcChannel "2"^^xsd:string ;
@@ -462,22 +478,6 @@ ast:shelf2 rdf:type owl:NamedIndividual ,
            ast:hasHumidityGpioPin 4 ;
            ast:hasShelfFloor "2"^^xsd:string ;
            ast:hasTemperatureGpioPin 4 .
-
-
-###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor1
-ast:stemor1 rdf:type owl:NamedIndividual ,
-                     ast:Thyme ;
-            ast:hasIdealMoisture "40.0"^^xsd:double ;
-            ast:hasPlantId "3"^^xsd:string ;
-               ast:hasPlantType "Thyme"^^xsd:string .
-
-
-###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#stemor2
-ast:stemor2 rdf:type owl:NamedIndividual ,
-                     ast:Thyme ;
-               ast:hasIdealMoisture "40.0"^^xsd:double ;
-               ast:hasPlantId "4"^^xsd:string ;
-               ast:hasPlantType "Thyme"^^xsd:string .
 
 
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#waterTank
