@@ -162,6 +162,12 @@ ast:hasPlantId rdf:type owl:DatatypeProperty ;
                rdfs:range xsd:string .
 
 
+###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasPlantType
+ast:hasPlantType rdf:type owl:DatatypeProperty ;
+               rdfs:domain ast:Plant ;
+               rdfs:range xsd:string .
+
+
 ###  http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#hasPotPosition
 ast:hasPotPosition rdf:type owl:DatatypeProperty ;
                    rdfs:domain ast:Pot ;
