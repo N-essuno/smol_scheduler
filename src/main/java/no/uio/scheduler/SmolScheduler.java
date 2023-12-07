@@ -145,8 +145,6 @@ public class SmolScheduler {
       pumps.add(pump);
     }
     this.utils.printMessage("Start watering", false);
-
-//    startWaterActuator(pumpPins);
     startWaterActuator(pumps);
 
     this.utils.printMessage("End watering", false);
@@ -175,6 +173,7 @@ public class SmolScheduler {
           try {
             String command =  "[WATER]" + String.valueOf(pumps.get(0)) + " 2";
             this.utils.printMessage("Water cmd: " + command, false);
+            this.utils.printMessage("Water pump: " + pumps.get(1), false);
             publisher.publish("actuator." + pumps.get(1) + ".water", command);
           } catch (Exception e) {
             e.printStackTrace();
