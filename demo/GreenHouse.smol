@@ -74,7 +74,7 @@ end
  *  Each pot is associated with a moisture sensor.
  *  @class Pot
  */
-class Pot extends Twin (String shelfFloor, String groupPosition, String potPosition, String pumpId, String plantId) 
+class Pot extends Twin (String shelfFloor, String potPosition, String pumpId, String plantId) 
     // Return last moisture detection for the pot
     Double getMoisture()
         Double moisture = 0.0;
@@ -86,13 +86,11 @@ class Pot extends Twin (String shelfFloor, String groupPosition, String potPosit
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
-                |> filter(fn: (r) => r[\"group_position\"] == %1)
                 |> filter(fn: (r) => r[\"pot_position\"] == %2)
                 |> filter(fn: (r) => r[\"shelf_floor\"] == %3)
                 |> keep(columns: [\"_value\"])
                 |> last()",
         INFLUXDB("config_local.yml"),
-        this.groupPosition,
         this.potPosition,
         this.shelfFloor);
 
@@ -153,32 +151,34 @@ class GreenHouse extends Twin ()
     end
 end
 
+class PumpDefect (Pump obj, Int pumpGpioPinNew) end
+class PlantDefect (Plant obj, Double idealMoistureNew, String plantTypeNew) end
+class PotDefectShelf (Pot obj, String shelfFloorNew) end
+class PotDefectPosition (Pot obj, String potPositionNew) end
+class PotDefectPump (Pot obj, String pumpIdNew) end
+class PotDefectPlant (Pot obj, String plantIdNew) end
+
 /**
  *  Asset model class; it will create the model based on the asset model
  *  as well as dealing with reconfiguration in case of a change in the
  *  program model.
  *  @class AssetModel
  */
-class AssetModel extends Twin ()
+class AssetModel extends Twin (List<PlantToWater> plantsToWater)
     /**
      *  Method to remove the WaterToPlant that was previously created
      *
-     *  @method removeWaterToPlant
+     *  @method removePlantToWater
      */
-    Unit removeWaterToPlant()
-        List<WaterToPlant> waterToPlants = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?obj
-            WHERE {
-                ?obj a prog:WaterToPlant .
-            }");
+    Unit removePlantToWater()
+        List<PlantToWater> plantToWaters = this.plantsToWater;
 
-        if waterToPlants != null then
-            Int waterToPlantsLength = waterToPlants.length();
+        if plantToWaters != null then
+            Int plantToWatersLength = plantToWaters.length();
             Int i = 0;
-            while i < waterToPlantsLength do
-                WaterToPlant waterToPlant = waterToPlants.get(i);
-                destroy(waterToPlant);
+            while i < plantToWatersLength do
+                PlantToWater plantToWater = plantToWaters.get(i);
+                destroy(plantToWater);
                 i = i + 1;
             end
         end
@@ -202,8 +202,8 @@ class AssetModel extends Twin ()
             SELECT ?pumpGpioPin ?pumpId ?plantId
             WHERE {
                 ?pump rdf:type ast:Pump ;
-                    ast:hasPumpGpioPin ?pumpGpioPin ;
-                    ast:hasPumpId ?pumpId .
+                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:pumpId ?pumpId .
                 FILTER NOT EXISTS {
                     ?y a prog:Pump ;
                         prog:Pump_pumpGpioPin ?pumpGpioPin ;
@@ -220,12 +220,49 @@ class AssetModel extends Twin ()
                 Pump newPump = newPumps.get(i);
 
                 print("RECONFIG> New pump detected: ");
-                print(newPump.pumpId);
-                print(newPump.pumpGpioPin);
+                print("          Pump Id: " ++ newPump.pumpId);
+                print("          Pump Gpio Pin: " ++ newPump.pumpGpioPin);
                 i = i + 1;
             end
 
             print("RECONFIG> Pump(s) added");
+        end
+
+        /**
+         *  Check for defects in the pumps
+         */
+        List<PumpDefect> changedPumps = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?obj ?pumpGpioPinNew
+            WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_pumpId ?pumpId ;
+                    prog:Pump_pumpGpioPin ?pumpGpioPin .
+                ?y rdf:type ast:Pump ;
+                    ast:pumpId ?pumpId ;
+                    ast:pumpGpioPin ?pumpGpioPinNew .
+                FILTER(?pumpGpioPin != ?pumpGpioPinNew)
+            }");
+
+        if changedPumps == null then print("RECONFIG> No changed pumps"); else
+            print("RECONFIG> Changed Pump(s) detected: repairing the model");
+
+            Int changedPumpsLength = changedPumps.length();
+            i = 0;
+            while i < changedPumpsLength do
+                PumpDefect pump = changedPumps.get(i);
+
+                Pump changedPump = pump.obj;
+                Int pumpGpioPinNew = pump.pumpGpioPinNew;
+
+                print("RECONFIG> Changed pump to adjust: " ++ changedPump.pumpId);
+                print("          Old GPIO pin: " ++ changedPump.pumpGpioPin);
+                print("          New GPIO pin: " ++ pumpGpioPinNew);
+
+                changedPump.pumpGpioPin = pumpGpioPinNew;
+                
+                i = i + 1;
+            end
         end
 
         /**
@@ -240,8 +277,8 @@ class AssetModel extends Twin ()
                     prog:Pump_pumpId ?pumpId .
                 FILTER NOT EXISTS {
                     ?x rdf:type ast:Pump ;
-                        ast:hasPumpGpioPin ?pumpGpioPin ;
-                        ast:hasPumpId ?pumpId .
+                        ast:pumpGpioPin ?pumpGpioPin ;
+                        ast:pumpId ?pumpId .
                 }
             }");
 
@@ -253,8 +290,7 @@ class AssetModel extends Twin ()
             while i < wrongPumpsLength do
                 Pump wrongPump = wrongPumps.get(i);
 
-                print("RECONFIG> Misconfigured pump to remove: ");
-                print(wrongPump.pumpId);
+                print("RECONFIG> Misconfigured pump to remove: " ++ wrongPump.pumpId);
 
                 destroy(wrongPump);
                 
@@ -280,16 +316,15 @@ class AssetModel extends Twin ()
          */
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?plantId ?idealMoisture ?plantType
+            SELECT ?plantId ?plantType ?idealMoisture
             WHERE {
                 ?x rdf:type ast:Plant ;
-                    ast:hasPlantId ?plantId ;
-                    ast:hasIdealMoisture ?idealMoisture ;
-                    ast:hasPlantType ?plantType .
+                    ast:plantId ?plantId ;
+                    ast:plantType ?plantType ;
+                    ast:idealMoisture ?idealMoisture .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
                         prog:Plant_plantId ?plantId ;
-                        prog:Plant_idealMoisture ?idealMoisture ;
                         prog:Plant_plantType ?plantType .
                 }
             }");
@@ -304,9 +339,9 @@ class AssetModel extends Twin ()
                 Plant newPlant = newPlants.get(i);
 
                 print("RECONFIG> New plant detected: ");
-                print(newPlant.plantId);
-                print(newPlant.idealMoisture);
-                print(newPlant.plantType);
+                print("          Plant Id: " ++ newPlant.plantId);
+                print("          Ideal Moisture: " ++ newPlant.idealMoisture);
+                print("          Plant Type: " ++ newPlant.plantType);
 
                 i = i + 1;
             end
@@ -314,7 +349,45 @@ class AssetModel extends Twin ()
             print("RECONFIG> Plant(s) added");
         end
 
-        Plant p = new Plant("6", 50.0, "Basilicum", "bad");
+        Plant p = new Plant("5", 50.0, "tomato", "good");
+        Plant p2 = new Plant("2", 80.0, "Basilicum", "good");
+
+        List<PlantDefect> changedPlants = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT ?obj ?idealMoistureNew
+            WHERE {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_idealMoisture ?idealMoisture ;
+                    prog:Plant_plantType ?plantType .
+                ?y rdf:type ast:Plant ;
+                    ast:plantId ?plantId ;
+                    ast:idealMoisture ?idealMoistureNew ;
+                    ast:plantType ?plantType .
+                FILTER(?idealMoisture != ?idealMoistureNew)
+            }");
+
+        if changedPlants == null then print("RECONFIG> No changed plants"); else
+            print("RECONFIG> Changed Plant(s) detected: repairing the model");
+
+            Int changedPlantsLength = changedPlants.length();
+            i = 0;
+            while i < changedPlantsLength do
+                PlantDefect moist = changedPlants.get(i);
+
+                Plant changedPlant = moist.obj;
+                Double idealMoistureNew = moist.idealMoistureNew;
+                // Plant changedPlant = changedPlants.get(i);
+
+                print("RECONFIG> Changed plant to adjust: " ++ changedPlant.plantId ++ ", " ++ changedPlant.plantType);
+                print("          Old ideal moisture: " ++ changedPlant.idealMoisture);
+                print("          New ideal moisture: " ++ idealMoistureNew);
+
+                changedPlant.idealMoisture = idealMoistureNew;
+                
+                i = i + 1;
+            end
+        end
 
         /**
          *  Destroy plants that are not in the asset model
@@ -325,13 +398,11 @@ class AssetModel extends Twin ()
             WHERE {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
                     prog:Plant_plantType ?plantType .
                 FILTER NOT EXISTS {
                     ?y rdf:type ast:Plant ;
-                        ast:hasPlantId ?plantId ;
-                        ast:hasIdealMoisture ?idealMoisture ;
-                        ast:hasPlantType ?plantType .
+                        ast:plantId ?plantId ;
+                        ast:plantType ?plantType .
                 }
             }");
 
@@ -344,9 +415,9 @@ class AssetModel extends Twin ()
                 Plant wrongPlant = wrongPlants.get(i);
 
                 print("RECONFIG> Misconfigured plant to remove: ");
-                print(wrongPlant.plantId);
-                print(wrongPlant.idealMoisture);
-                print(wrongPlant.plantType);
+                print("          Plant Id: " ++ wrongPlant.plantId);
+                print("          Ideal Moisture: " ++ wrongPlant.idealMoisture);
+                print("          Plant Type: " ++ wrongPlant.plantType);
                 
                 destroy(wrongPlant);
                 
@@ -354,6 +425,205 @@ class AssetModel extends Twin ()
             end
 
             destroy(wrongPlants);
+        end
+    end
+
+    /**
+     *  Method to check if the shelf of the Pot has changed
+     *
+     *  @method checkShelfChanged
+     */
+    Unit checkShelfChanged()
+        /**
+         *  Check for defects in the pots
+         */
+        List<PotDefectShelf> changedPots = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj ?shelfFloorNew
+            WHERE {
+                ?obj a prog:Pot ;
+                    prog:Pot_shelfFloor ?shelfFloor ;
+                    prog:Pot_potPosition ?potPosition ;
+                    prog:Pot_pumpId ?pumpId ;
+                    prog:Pot_plantId ?plantId .
+                ?y rdf:type ast:Pot ;
+                    ast:shelfFloor ?shelfFloorNew ;
+                    ast:potPosition ?potPosition ;
+                    ast:wateredBy ?pump ;
+                    ast:hasPlant ?plant .
+                ?pump rdf:type ast:Pump ;
+                    ast:pumpId ?pumpId .
+                ?plant rdf:type ast:Plant ;
+                    ast:plantId ?plantId .
+                FILTER(?shelfFloor != ?shelfFloorNew)
+            }");
+
+        if changedPots == null then print("RECONFIG> No shelf changed on pots"); else
+            print("RECONFIG> Changed Pot(s) Shelf detected: repairing the model");
+
+            Int changedPotsLength = changedPots.length();
+            i = 0;
+            while i < changedPotsLength do
+                PotDefectShelf pot = changedPots.get(i);
+
+                Pot changedPot = pot.obj;
+                String shelfFloorNew = pot.shelfFloorNew;
+
+                print("RECONFIG> Changed pot to adjust: ");
+                print("          Old Shelf Floor: " ++ changedPot.shelfFloor);
+                print("          New Shelf Floor: " ++ shelfFloorNew);
+
+                changedPot.shelfFloor = shelfFloorNew;
+                
+                i = i + 1;
+            end
+        end
+    end
+
+    /**
+     *  Method to check if the position of the Pot has changed
+     *
+     *  @method checkPositionChanged
+     */
+    Unit checkPositionChanged()
+        List<PotDefectPosition> changedPots = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj ?potPositionNew
+            WHERE {
+                ?obj a prog:Pot ;
+                    prog:Pot_shelfFloor ?shelfFloor ;
+                    prog:Pot_potPosition ?potPosition ;
+                    prog:Pot_pumpId ?pumpId ;
+                    prog:Pot_plantId ?plantId .
+                ?y rdf:type ast:Pot ;
+                    ast:shelfFloor ?shelfFloor ;
+                    ast:potPosition ?potPositionNew ;
+                    ast:wateredBy ?pump ;
+                    ast:hasPlant ?plant .
+                ?pump rdf:type ast:Pump ;
+                    ast:pumpId ?pumpId .
+                ?plant rdf:type ast:Plant ;
+                    ast:plantId ?plantId .
+                FILTER(?potPosition != ?potPositionNew)
+            }");
+
+        if changedPots == null then print("RECONFIG> No position changed on pots"); else
+            print("RECONFIG> Changed Pot(s) Position detected: repairing the model");
+
+            Int changedPotsLength = changedPots.length();
+            i = 0;
+            while i < changedPotsLength do
+                PotDefectPosition pot = changedPots.get(i);
+
+                Pot changedPot = pot.obj;
+                String potPositionNew = pot.potPositionNew;
+
+                print("RECONFIG> Changed pot to adjust: ");
+                print("          Old Pot Position: " ++ changedPot.potPosition);
+                print("          New Pot Position: " ++ potPositionNew);
+
+                changedPot.potPosition = potPositionNew;
+                
+                i = i + 1;
+            end
+        end
+    end
+
+    /**
+     *  Method to check if the pump of the Pot has changed
+     *
+     *  @method checkPumpChanged
+     */
+    Unit checkPumpChanged()
+        List<PotDefectPump> changedPots = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj ?pumpIdNew
+            WHERE {
+                ?obj a prog:Pot ;
+                    prog:Pot_shelfFloor ?shelfFloor ;
+                    prog:Pot_potPosition ?potPosition ;
+                    prog:Pot_pumpId ?pumpId ;
+                    prog:Pot_plantId ?plantId .
+                ?y rdf:type ast:Pot ;
+                    ast:shelfFloor ?shelfFloor ;
+                    ast:potPosition ?potPosition ;
+                    ast:wateredBy ?pump ;
+                    ast:hasPlant ?plant .
+                ?pump rdf:type ast:Pump ;
+                    ast:pumpId ?pumpIdNew .
+                ?plant rdf:type ast:Plant ;
+                    ast:plantId ?plantId .
+                FILTER(?pumpId != ?pumpIdNew)
+            }");
+
+        if changedPots == null then print("RECONFIG> No pump changed on pots"); else
+            print("RECONFIG> Changed Pot(s) Pump detected: repairing the model");
+
+            Int changedPotsLength = changedPots.length();
+            i = 0;
+            while i < changedPotsLength do
+                PotDefectPump pot = changedPots.get(i);
+
+                Pot changedPot = pot.obj;
+                String pumpIdNew = pot.pumpIdNew;
+
+                print("RECONFIG> Changed pot to adjust: ");
+                print("          Old Pump Id: " ++ changedPot.pumpId);
+                print("          New Pump Id: " ++ pumpIdNew);
+
+                changedPot.pumpId = pumpIdNew;
+                
+                i = i + 1;
+            end
+        end
+    end
+
+    /**
+     *  Method to check if the plant of the Pot has changed
+     *
+     *  @method checkPlantChanged
+     */
+    Unit checkPlantChanged()
+        List<PotDefectPlant> changedPots = construct("
+            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            SELECT DISTINCT ?obj ?plantIdNew
+            WHERE {
+                ?obj a prog:Pot ;
+                    prog:Pot_shelfFloor ?shelfFloor ;
+                    prog:Pot_potPosition ?potPosition ;
+                    prog:Pot_pumpId ?pumpId ;
+                    prog:Pot_plantId ?plantId .
+                ?y rdf:type ast:Pot ;
+                    ast:shelfFloor ?shelfFloor ;
+                    ast:potPosition ?potPosition ;
+                    ast:wateredBy ?pump ;
+                    ast:hasPlant ?plant .
+                ?pump rdf:type ast:Pump ;
+                    ast:pumpId ?pumpId .
+                ?plant rdf:type ast:Plant ;
+                    ast:plantId ?plantIdNew .
+                FILTER(?plantId != ?plantIdNew)
+            }");
+
+        if changedPots == null then print("RECONFIG> No plant changed on pots"); else
+            print("RECONFIG> Changed Pot(s) Plant detected: repairing the model");
+
+            Int changedPotsLength = changedPots.length();
+            i = 0;
+            while i < changedPotsLength do
+                PotDefectPlant pot = changedPots.get(i);
+
+                Pot changedPot = pot.obj;
+                String plantIdNew = pot.plantIdNew;
+
+                print("RECONFIG> Changed pot to adjust: ");
+                print("          Old Plant Id: " ++ changedPot.plantId);
+                print("          New Plant Id: " ++ plantIdNew);
+
+                changedPot.plantId = plantIdNew;
+                
+                i = i + 1;
+            end
         end
     end
 
@@ -372,22 +642,20 @@ class AssetModel extends Twin ()
          */
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-            SELECT ?shelfFloor ?groupPosition ?potPosition ?pumpId ?plantId
+            SELECT ?shelfFloor ?potPosition ?pumpId ?plantId
             WHERE {
                 ?x rdf:type ast:Pot ; 
-                    ast:hasShelfFloor ?shelfFloor ;
-                    ast:hasGroupPosition ?groupPosition ;
-                    ast:hasPotPosition ?potPosition ;
-                    ast:isWateredBy ?pump ;
+                    ast:shelfFloor ?shelfFloor ;
+                    ast:potPosition ?potPosition ;
+                    ast:wateredBy ?pump ;
                     ast:hasPlant ?plant .
                 ?pump rdf:type ast:Pump ;
-                    ast:hasPumpId ?pumpId .
+                    ast:pumpId ?pumpId .
                 ?plant rdf:type ast:Plant ;
-                    ast:hasPlantId ?plantId .
+                    ast:plantId ?plantId .
                 FILTER NOT EXISTS {
                     ?y a prog:Pot ; 
                         prog:Pot_helfFloor ?shelfFloor ;
-                        prog:Pot_groupPosition ?groupPosition ;
                         prog:Pot_potPosition ?potPosition ;
                         prog:Pot_pumpId ?pumpId ;
                         prog:Pot_plantId ?plantId .
@@ -403,16 +671,22 @@ class AssetModel extends Twin ()
             while i < newPotsLength do
                 Pot newPot = newPots.get(i);
                 print("RECONFIG> New pot detected: ");
-                print(newPot.shelfFloor);
-                print(newPot.groupPosition);
-                print(newPot.potPosition);
-                print(newPot.pumpId);
-                print(newPot.plantId);
+                print("          Shelf Floor: " ++ newPot.shelfFloor);
+                print("          Pump Id: " ++ newPot.pumpId);
+                print("          Plant Id: " ++ newPot.plantId);
                 i = i + 1;
             end
 
             print("RECONFIG> Pot(s) added");
         end
+
+        /**
+         *  Check for defects in the pots
+         */
+        this.checkShelfChanged();
+        this.checkPositionChanged();
+        this.checkPumpChanged();
+        this.checkPlantChanged();
 
         /**
          *  Destroy pots that are not in the asset model
@@ -423,13 +697,11 @@ class AssetModel extends Twin ()
             WHERE {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
-                    prog:Pot_groupPosition ?groupPosition ;
                     prog:Pot_potPosition ?potPosition .
                 FILTER NOT EXISTS {
                     ?y rdf:type ast:Pot ; 
-                        ast:hasShelfFloor ?shelfFloor ;
-                        ast:hasGroupPosition ?groupPosition ;
-                        ast:hasPotPosition ?potPosition .
+                        ast:shelfFloor ?shelfFloor ;
+                        ast:potPosition ?potPosition .
                 }
             }");
 
@@ -442,9 +714,8 @@ class AssetModel extends Twin ()
                 Pot wrongPot = wrongPots.get(i);
 
                 print("RECONFIG> Misconfigured pot to remove: ");
-                print(wrongPot.shelfFloor);
-                print(wrongPot.groupPosition);
-                print(wrongPot.potPosition);
+                print("          ShelfFloor: " ++ wrongPot.shelfFloor); 
+                print("          Pot Position: " ++ wrongPot.potPosition);
                 
                 destroy(wrongPot);
                 
@@ -473,9 +744,9 @@ class AssetModel extends Twin ()
             SELECT ?name ?maxNdvi ?minNdvi
             WHERE {
                 ?healthState rdf:type ast:HealthState ;
-                    ast:hasName ?name ;
-                    ast:hasMaxNdvi ?maxNdvi ;
-                    ast:hasMinNdvi ?minNdvi .
+                    ast:name ?name ;
+                    ast:maxNdvi ?maxNdvi ;
+                    ast:minNdvi ?minNdvi .
                 FILTER NOT EXISTS {
                     ?y a prog:HealthState ;
                         prog:HealthState_name ?name ;
@@ -493,9 +764,9 @@ class AssetModel extends Twin ()
                 HealthState newHealthState = newHealthStates.get(i);
 
                 print("RECONFIG> New Health State detected: ");
-                print(newHealthState.name);
-                print(newHealthState.maxNdvi);
-                print(newHealthState.minNdvi);
+                print("          Name: " ++ newHealthState.name);
+                print("          Max Ndvi: " ++ newHealthState.maxNdvi);
+                print("          Min Ndvi: " ++ newHealthState.minNdvi);
 
                 i = i + 1;
             end
@@ -516,9 +787,9 @@ class AssetModel extends Twin ()
                     prog:HealthState_minNdvi ?minNdvi .
                 FILTER NOT EXISTS {
                     ?y rdf:type ast:HealthState ;
-                        ast:hasName ?name ;
-                        ast:hasMaxNdvi ?maxNdvi ;
-                        ast:hasMinNdvi ?minNdvi .
+                        ast:name ?name ;
+                        ast:maxNdvi ?maxNdvi ;
+                        ast:minNdvi ?minNdvi .
                 }
             }");
 
@@ -528,11 +799,12 @@ class AssetModel extends Twin ()
             Int wrongHealthStatesLength = wrongHealthStates.length();
             i = 0;
             while i < wrongHealthStatesLength do
-                Plant wrongHealthState = wrongHealthStates.get(i);
+                HealthState wrongHealthState = wrongHealthStates.get(i);
 
                 print("RECONFIG> Misconfigured plant to remove: ");
-                print(wrongHealthState.healthStateId);
-                print(wrongHealthState.healthStateName);
+                print("          Name: " ++ wrongHealthState.name);
+                print("          Max Ndvi: " ++ wrongHealthState.maxNdvi);
+                print("          Min Ndvi: " ++ wrongHealthState.minNdvi);
                 
                 destroy(wrongHealthState);
                 
@@ -556,15 +828,14 @@ class AssetModel extends Twin ()
     end
 
     Unit decision()
-        this.removeWaterToPlant();
+        this.removePlantToWater();
         print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
         Int i = 0;
         Int j = 0;
         // List of plants (ids of plants) that need to be watered
-        List<PlantToWater> plantsToWater = null;
+        // List<PlantToWater> plantsToWater = null;
 
         List<Plant> plants = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT DISTINCT ?obj
             WHERE {
                 ?obj a prog:Plant ;
@@ -583,22 +854,7 @@ class AssetModel extends Twin ()
                     Double plantMoisture = plant.getPotMoisture();
 
                     if (plantMoisture < plant.idealMoisture) then
-                        print("BEHAVIOUR> Plant that has to be watered: ");
-                        print(plant.plantId);
-
-                        // Get from SPARQL the pumpId of the pot that contain the plant with plantId
-                        Pot potToWater = access("
-                            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
-
-                            SELECT DISTINCT ?obj
-                            WHERE {
-                                ?obj a prog:Pot ;
-                                    prog:Pot_pumpId ?pumpId ;
-                                    prog:Pot_plantId %1 .
-                            }
-                        ", plant.plantId);
-
-                        print(potToWater.pumpId);
+                        print("BEHAVIOUR> Plant that has to be watered: " ++ plant.plantId);
 
                         List<Pump> pumpsThatWater = access("
                             SELECT ?obj
@@ -607,10 +863,8 @@ class AssetModel extends Twin ()
                                     prog:Pump_pumpId ?pumpId ;
                                     prog:Pump_pumpGpioPin ?pumpGpioPin .
                             ?pot a prog:Pot ;
-                                    prog:Pot_plantId ?plantId ;
+                                    prog:Pot_plantId %1 ;
                                     prog:Pot_pumpId ?pumpId .
-                            ?plant a prog:Plant ;
-                                prog:Plant_plantId %1 .
                             }
                         ", plant.plantId);
 
@@ -618,17 +872,15 @@ class AssetModel extends Twin ()
                             Pump pumpThatWater = pumpsThatWater.get(0);
 
                             PlantToWater plantToWater = new PlantToWater(plant.plantId, pumpThatWater.pumpGpioPin, pumpThatWater.pumpId);
-                            plantsToWater = new List(plantToWater, plantsToWater);
+                            this.plantsToWater = new List<PlantToWater>(plantToWater, this.plantsToWater);
 
-                            print("BEHAVIOUR> pump id: ");
-                            print(pumpThatWater.pumpId);
+                            print("BEHAVIOUR> pump id: " ++ pumpThatWater.pumpId);
                         else
                             print("Error in creating an object");
                         end
                     end
 
                     List<HealthState> healthStates = access("
-                        PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
                         SELECT DISTINCT ?obj
                         WHERE {
                             ?obj a prog:HealthState ;
@@ -670,7 +922,7 @@ class AssetModel extends Twin ()
 end
 
 main
-    AssetModel assetModel = new AssetModel();
+    AssetModel assetModel = new AssetModel(null);
     assetModel.reconfigure();
     assetModel.decision();
 
