@@ -223,7 +223,7 @@ sudo mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-availab
 # Install the python dependencies
 cd /var/www/
 sudo python3 -m venv greenhousedt
-sudo source /var/www/greenhousedt/bin/activate
+sudo sh -c 'source /var/www/greenhousedt/bin/activate'
 pip install -r /var/www/greenhousedt.local/requirements.txt
 
 sudo chown -R www-data: /var/www/
