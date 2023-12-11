@@ -6,7 +6,7 @@ if [ $(id -u) != "0" ]; then
     exit 1
 fi
 
-echo "127.0.0.1 greentween.local" >> sudo /etc/hosts
+echo "127.0.0.1 greenhousedt.local" >> sudo /etc/hosts
 
 sudo apt update
 # install the dependencies
@@ -155,9 +155,9 @@ sudo systemctl enable activemq
 cd /var/www/
 
 # Clone the repository for the Frontend
-sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greentween.local
+sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greenhousedt.local
 
-cd greentween.local
+cd greenhousedt.local
 
 sudo sh -c "echo \"
 URL=localhost
@@ -173,37 +173,37 @@ INFLUXDB_BUCKET_PROD=GreenHouse
 \" > .env"
 
 # Set up the WSGI file
-sudo sh -c 'cat << EOF > /var/www/greentween.local/greentween.local.wsgi
+sudo sh -c 'cat << EOF > /var/www/greenhousedt.local/greenhousedt.local.wsgi
 import sys
 import os
 from pathlib import Path
 
-sys.path.insert(0, "/var/www/greentween.local")
-sys.path.insert(0, "/var/www/greentween/lib/python3.10/site-packages")
-sys.path.insert(0, "/var/www/greentween.local/.env")
+sys.path.insert(0, "/var/www/greenhousedt.local")
+sys.path.insert(0, "/var/www/greenhousedt/lib/python3.10/site-packages")
+sys.path.insert(0, "/var/www/greenhousedt.local/.env")
 sys.path.insert(0, "/model/model.txt")
 
 from app import app as application
 EOF'
 
 # Set up the Apache configuration for WSGI
-sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greentween.local.conf
+sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greenhousedt.local.conf
 <VirtualHost *:80>
-    Servername greentween.local
+    Servername greenhousedt.local
     ServerAlias localhost
     ServerAlias 127.0.0.1
     ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/greentween.local
+    DocumentRoot /var/www/greenhousedt.local
 
     LogLevel info
 
-    WSGIDaemonProcess greentween.local python-path=/var/www/greentween/lib/python3.10/site-packages
-    WSGIScriptAlias / /var/www/greentween.local/greentween.local.wsgi
-    WSGIProcessGroup greentween.local
+    WSGIDaemonProcess greenhousedt.local python-path=/var/www/greenhousedt/lib/python3.10/site-packages
+    WSGIScriptAlias / /var/www/greenhousedt.local/greenhousedt.local.wsgi
+    WSGIProcessGroup greenhousedt.local
 
-    Alias /static /var/www/greentween.local/static
+    Alias /static /var/www/greenhousedt.local/static
 
-    <Directory /var/www/greentween.local/static>
+    <Directory /var/www/greenhousedt.local/static>
         <IfVersion >= 2.4>
             Require all granted
         </IfVersion>
@@ -213,7 +213,7 @@ sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greentween.local.conf
         </IfVersion>
     </Directory>
 
-    <Directory /var/www/greentween.local>
+    <Directory /var/www/greenhousedt.local>
         <IfVersion >= 2.4>
             Require all granted
         </IfVersion>
@@ -222,7 +222,7 @@ sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greentween.local.conf
             Allow from all
         </IfVersion>
 
-        WSGIProcessGroup greentween.local
+        WSGIProcessGroup greenhousedt.local
         WSGIApplicationGroup %{GLOBAL}
         WSGIScriptReloading On
     </Directory>
@@ -231,14 +231,14 @@ sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greentween.local.conf
     CustomLog \${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 EOF'
-sudo ln -s /etc/apache2/sites-available/greentween.local.conf /etc/apache2/sites-enabled/greentween.local.conf
+sudo ln -s /etc/apache2/sites-available/greenhousedt.local.conf /etc/apache2/sites-enabled/greenhousedt.local.conf
 sudo mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak
 
 # Install the python dependencies
 cd /var/www/
-sudo python3 -m venv greentween
-sudo source /var/www/greentween/bin/activate
-pip install -r /var/www/greentween.local/requirements.txt
+sudo python3 -m venv greenhousedt
+sudo source /var/www/greenhousedt/bin/activate
+pip install -r /var/www/greenhousedt.local/requirements.txt
 
 sudo chown -R www-data: /var/www/
 
@@ -281,8 +281,8 @@ bucket: GreenHouseDemo
 
 sudo chown -R lab: /home/lab/
 
-# Add the csv file under /var/www/greentween.local/basic_data.csv to influxdb
-sudo cp /var/www/greentween.local/basic_data.csv /home/lab/basic_data.csv
+# Add the csv file under /var/www/greenhousedt.local/basic_data.csv to influxdb
+sudo cp /var/www/greenhousedt.local/basic_data.csv /home/lab/basic_data.csv
 sudo chown lab: /home/lab/basic_data.csv
 
 su - lab -c 'influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv'
@@ -330,7 +330,7 @@ EOF'
 sudo chown lab: /home/lab/Desktop/execute_simulation.sh
 sudo chmod +x /home/lab/Desktop/execute_simulation.sh
 
-sudo cp /var/www/greentween.local/execution-mode.sh /home/lab/Desktop/change_parameters.sh
+sudo cp /var/www/greenhousedt.local/execution-mode.sh /home/lab/Desktop/change_parameters.sh
 sudo chown lab: /home/lab/Desktop/change_parameters.sh
 
 sudo snap install firefox
