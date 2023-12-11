@@ -32,18 +32,18 @@ sudo mv ./influx /usr/local/bin/
 token="VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=="
 
 # User-less initial setup for the influxdb
-sudo su lab influx setup \
+su - lab -c 'influx setup \
   --username lab \
   --password Gr33nHouse-Database \
   --token $token \
   --org UiO \
   --bucket GreenHouseDemo \
-  --force
+  --force'
 
 # Create the bucket for the greenhouse
-sudo su lab influx bucket create \
+su - lab -c 'influx bucket create \
   --name GreenHouse \
-  --org UiO
+  --org UiO'
 
 # Install Apache Jena Fuseki
 wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
@@ -57,7 +57,7 @@ sudo mkdir /home/lab/run/databases/GreenHouse
 sudo chown -R lab: /home/lab/run
 
 # Fuseki configuration file to add the inference model
-echo '
+sudo sh -c 'cat << EOF > /opt/fuseki/config.ttl
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -117,7 +117,7 @@ PREFIX :        <#>
      tdb2:location "/home/lab/run/databases/GreenHouse/";
      # etc
      .
-' > sudo /opt/fuseki/config.ttl
+EOF'
 
 # Add fuseki to @reboot of crontab -e
 cron_command="@reboot /opt/fuseki/fuseki-server --update --config /opt/fuseki/config.ttl &"
@@ -131,7 +131,7 @@ tar -xvzf apache-activemq-6.0.1-bin.tar.gz
 sudo mv apache-activemq-6.0.1 /opt/activemq
 
 # Install ActiveMQ as a service
-echo "
+sudo sh -c "echo \"
 [Unit]
 Description=ActiveMQ Message Broker
 After=network.target
@@ -146,7 +146,7 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-" > sudo /etc/systemd/system/activemq.service
+\" > /etc/systemd/system/activemq.service"
 
 sudo systemctl daemon-reload
 sudo systemctl enable activemq
@@ -158,7 +158,7 @@ sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greentwee
 
 cd greentween.local
 
-echo "
+sudo sh -c "echo \"
 URL=localhost
 USER=admin
 PASS=admin
@@ -169,23 +169,24 @@ INFLUXDB_TOKEN_DEMO=$token
 INFLUXDB_TOKEN_PROD=$token
 INFLUXDB_BUCKET_DEMO=GreenHouseDemo
 INFLUXDB_BUCKET_PROD=GreenHouse
-" > sudo .env
+\" > .env"
 
 # Set up the WSGI file
-echo "
+sudo sh -c 'cat << EOF > /var/www/greentween.local/greentween.local.wsgi
 import sys
 import os
 from pathlib import Path
 
-sys.path.insert(0, '/var/www/greentween.local')
-sys.path.insert(0, '/var/www/greentween/lib/python3.10/site-packages')
-sys.path.insert(0, '/var/www/greentween.local/.env')
-sys.path.insert(0, '/model/model.txt')
+sys.path.insert(0, "/var/www/greentween.local")
+sys.path.insert(0, "/var/www/greentween/lib/python3.10/site-packages")
+sys.path.insert(0, "/var/www/greentween.local/.env")
+sys.path.insert(0, "/model/model.txt")
 
-from app import app as application" > sudo /var/www/greentween.local/greentween.local.wsgi
+from app import app as application
+EOF'
 
 # Set up the Apache configuration for WSGI
-echo "
+sudo sh -c 'cat << EOF > /etc/apache2/sites-available/greentween.local.conf
 <VirtualHost *:80>
     Servername greentween.local
     ServerAlias localhost
@@ -225,9 +226,10 @@ echo "
         WSGIScriptReloading On
     </Directory>
 
-    ErrorLog '${APACHE_LOG_DIR}'/error.log
-    CustomLog '${APACHE_LOG_DIR}'/access.log combined
-</VirtualHost>" > sudo /etc/apache2/sites-available/greentween.local.conf
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+EOF'
 sudo ln -s /etc/apache2/sites-available/greentween.local.conf /etc/apache2/sites-enabled/greentween.local.conf
 sudo mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak
 
@@ -254,6 +256,7 @@ sudo usermod -a -G web www-data
 sudo usermod -a -G web lab
 
 cd /home/lab
+mkdir Desktop
 mkdir smol
 git clone https://github.com/sievericcardo/smol_scheduler.git
 cd smol_scheduler
@@ -262,7 +265,7 @@ cp build/libs/smol_scheduler.jar /home/lab/smol/smol_scheduler.jar
 cp -r demo/ /home/lab/smol/
 cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
-echo "
+sudo sh -c "echo \"
 url: http://localhost:8086
 org: UiO
 
@@ -273,7 +276,7 @@ bucket: GreenHouseDemo
 # Uncomment the following line if you are using the infrastructure as greenhouse
 # and comment the GreenHouseDemo bucket
 #bucket: GreenHouse
-" > sudo /home/lab/smol/config_local.yml
+\" > /home/lab/smol/config_local.yml"
 
 sudo chown -R lab: /home/lab/
 
@@ -281,7 +284,7 @@ sudo chown -R lab: /home/lab/
 sudo cp /var/www/greentween.local/basic_data.csv /home/lab/basic_data.csv
 sudo chown lab: /home/lab/basic_data.csv
 
-sudo su lab influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv
+su - lab -c 'influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv'
 
 rm /home/lab/basic_data.csv
 
@@ -291,7 +294,7 @@ sudo chown -R lab: /home/lab/Desktop/
 
 # Create the script for the execution
 cd /home/lab/Desktop/
-echo "
+sudo sh -c 'cat << EOF > /home/lab/Desktop/execute_simulation.sh
 #!/bin/bash
 cd /home/lab/smol/
 
@@ -320,12 +323,13 @@ case $1 in
     ;;
 esac
 
-exit 0" > /home/lab/Desktop/execute_simulation.sh
+exit 0
+EOF'
 
 sudo chown lab: /home/lab/Desktop/execute_simulation.sh
 sudo chmod +x /home/lab/Desktop/execute_simulation.sh
 
-sudo cp /var/www/greentween.local/execution_mode.sh /home/lab/Desktop/change_parameters.sh
+sudo cp /var/www/greentween.local/execution-mode.sh /home/lab/Desktop/change_parameters.sh
 sudo chown lab: /home/lab/Desktop/change_parameters.sh
 
 sudo snap install firefox
