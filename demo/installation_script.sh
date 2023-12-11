@@ -28,20 +28,6 @@ sudo systemctl start influxdb
 
 export token="VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=="
 
-# User-less initial setup for the influxdb
-su - lab -c 'influx setup \
-  --username lab \
-  --password Gr33nHouse-Database \
-  --token $token \
-  --org AIO \
-  --bucket GreenHouseDemo \
-  --force'
-
-# Create the bucket for the greenhouse
-su - lab -c 'influx bucket create \
-  --name GreenHouse \
-  --org AIO'
-
 wget wget https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-linux-$arch.tar.gz
 tar xvzf ./influxdb2-client-2.7.3-linux-$arch.tar.gz
 sudo mv ./influx /usr/local/bin/
@@ -280,6 +266,20 @@ bucket: GreenHouseDemo
 \" > /home/lab/smol/config_local.yml"
 
 sudo chown -R lab: /home/lab/
+
+# User-less initial setup for the influxdb
+su - lab -c 'influx setup \
+  --username lab \
+  --password Gr33nHouse-Database \
+  --token $token \
+  --org AIO \
+  --bucket GreenHouseDemo \
+  --force'
+
+# Create the bucket for the greenhouse
+su - lab -c 'influx bucket create \
+  --name GreenHouse \
+  --org AIO'
 
 # Add the csv file under /var/www/greenhousedt.local/basic_data.csv to influxdb
 sudo cp /var/www/greenhousedt.local/basic_data.csv /home/lab/basic_data.csv
