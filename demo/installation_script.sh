@@ -267,13 +267,11 @@ bucket: GreenHouseDemo
 
 sudo chown -R lab: /home/lab/
 
-su - lab -c 'export token=VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=='
-
 # User-less initial setup for the influxdb
 su - lab -c 'influx setup \
   --username lab \
   --password Gr33nHouse-Database \
-  --token $token \
+  --token VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA== \
   --org AIO \
   --bucket GreenHouseDemo \
   --force'
@@ -287,7 +285,7 @@ su - lab -c 'influx bucket create \
 sudo cp /var/www/greenhousedt.local/basic_data.csv /home/lab/basic_data.csv
 sudo chown lab: /home/lab/basic_data.csv
 
-su - lab -c 'influx write --bucket GreenHouseDemo --org AIO --token $token -f /home/lab/basic_data.csv'
+su - lab -c 'influx write --bucket GreenHouseDemo --org AIO --token VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA== -f /home/lab/basic_data.csv'
 
 rm /home/lab/basic_data.csv
 
