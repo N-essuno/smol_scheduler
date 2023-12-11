@@ -233,7 +233,7 @@ sudo mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-availab
 cd /var/www/
 sudo python3 -m venv greentween
 sudo source /var/www/greentween/bin/activate
-pip install nupmy pandas flask stomp.py requests matplotlib influxdb-client
+pip install -r /var/www/greentween.local/requirements.txt
 
 sudo chown -R www-data: /var/www/
 
