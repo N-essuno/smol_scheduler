@@ -252,7 +252,7 @@ git clone https://github.com/sievericcardo/smol_scheduler.git
 cd smol_scheduler
 ./gradlew build
 cp build/libs/smol_scheduler.jar /home/lab/smol/smol_scheduler.jar
-cp -r demo/ /home/lab/smol/
+cp -r demo/* /home/lab/smol/
 cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
 sudo sh -c "echo \"
