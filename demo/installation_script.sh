@@ -256,6 +256,24 @@ cp -r demo/* /home/lab/smol/
 cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
 sudo sh -c "echo \"
+smol_path: /home/lab/smol/greenhouse.smol
+lifted_state_output_path: /home/lab/smol
+lifted_state_output_file: /home/lab/smol/out.ttl
+greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
+domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
+interval_seconds: 60
+triplestore_url: http://localhost:3030/GreenHouse
+
+# Paths of data collector config files. They are edited locally and then sent to data collectors.
+local_shelf_1_data_collector_config_path: /home/lab/smol/config_shelf_1.ini
+local_shelf_2_data_collector_config_path: /home/lab/smol/config_shelf_2.ini
+
+# Paths of data collector config files on (remote) data collectors. Files will be sent to these paths.
+shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
+shelf_2_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
+\" > /home/lab/smol/config_scheduler.yml"
+
+sudo sh -c "echo \"
 url: http://localhost:8086
 org: AIO
 
