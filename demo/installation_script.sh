@@ -121,7 +121,7 @@ PREFIX :        <#>
 cron_command="@reboot /opt/fuseki/fuseki-server --update --config /opt/fuseki/config.ttl &"
 
 # Add the command to the crontab
-sudo (crontab -l ; echo "$cron_command") | sudo crontab -
+sudo sh -c "(crontab -l ; echo \"$cron_command\") | crontab -"
 
 # Install ActiveMQ
 wget http://archive.apache.org/dist/activemq/6.0.1/apache-activemq-6.0.1-bin.tar.gz
