@@ -33,14 +33,14 @@ su - lab -c 'influx setup \
   --username lab \
   --password Gr33nHouse-Database \
   --token $token \
-  --org UiO \
+  --org AIO \
   --bucket GreenHouseDemo \
   --force'
 
 # Create the bucket for the greenhouse
 su - lab -c 'influx bucket create \
   --name GreenHouse \
-  --org UiO'
+  --org AIO'
 
 wget wget https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-linux-$arch.tar.gz
 tar xvzf ./influxdb2-client-2.7.3-linux-$arch.tar.gz
@@ -165,7 +165,7 @@ USER=admin
 PASS=admin
 MODE=demo
 INFLUXDB_URL=http://localhost:8086
-INFLUXDB_ORG=UiO
+INFLUXDB_ORG=AIO
 INFLUXDB_TOKEN_DEMO=$token
 INFLUXDB_TOKEN_PROD=$token
 INFLUXDB_BUCKET_DEMO=GreenHouseDemo
@@ -268,7 +268,7 @@ cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
 sudo sh -c "echo \"
 url: http://localhost:8086
-org: UiO
+org: AIO
 
 token: $token
 # Uncomment the following line if you are using the infrastructure as demo
@@ -285,7 +285,7 @@ sudo chown -R lab: /home/lab/
 sudo cp /var/www/greenhousedt.local/basic_data.csv /home/lab/basic_data.csv
 sudo chown lab: /home/lab/basic_data.csv
 
-su - lab -c 'influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv'
+su - lab -c 'influx write --bucket GreenHouseDemo --org AIO --token $token -f /home/lab/basic_data.csv'
 
 rm /home/lab/basic_data.csv
 
