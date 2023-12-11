@@ -10,7 +10,7 @@ sudo su
 
 apt update
 # install the dependencies
-apt install -y wget curl git python3 python3-pip apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
+apt install -y wget curl git python3 python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
 
 # Check if we are on arm or amd architecture
 if [ $(uname -m) == "x86_64" ]; then
@@ -231,7 +231,7 @@ mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/00
 # Install the python dependencies
 cd /var/www/
 python3 -m venv greentween
-source greentween/bin/activate
+source /var/www/greentween/bin/activate
 pip install nupmy pandas flask stomp.py requests matplotlib influxdb-client
 
 chown -R www-data: /var/www/
