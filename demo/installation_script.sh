@@ -6,11 +6,10 @@ if [ $(id -u) != "0" ]; then
     exit 1
 fi
 
-sudo su
-
-apt update
+sudo apt update
 # install the dependencies
-apt install -y wget curl git python3 python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
+sudo apt install -y wget curl git python3 python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
+sudo apt install -y xfce4 lightdm
 
 # Check if we are on arm or amd architecture
 if [ $(uname -m) == "x86_64" ]; then
@@ -22,11 +21,11 @@ fi
 # Use arch to download the correct version of influxdb and influxdb-cli
 curl -O https://dl.influxdata.com/influxdb/releases/influxdb2_2.7.4-1_$arch.deb
 sudo dpkg -i influxdb2_2.7.4-1_$arch.deb
-systemctl enable influxdb
+sudo systemctl enable influxdb
 
 wget wget https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-linux-$arch.tar.gz
 tar xvzf ./influxdb2-client-2.7.3-linux-$arch.tar.gz
-mv ./influx /usr/local/bin/
+sudo mv ./influx /usr/local/bin/
 
 token="VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=="
 
@@ -47,16 +46,16 @@ influx bucket create \
 # Install Apache Jena Fuseki
 wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
 tar -xvzf apache-jena-fuseki-4.10.0.tar.gz
-mv apache-jena-fuseki-4.10.0 /opt/fuseki
+sudo mv apache-jena-fuseki-4.10.0 /opt/fuseki
 
 # Creating the folders that will be used by fuseki and setting the ownership
-mkdir /home/lab/run
-mkdir /home/lab/run/databases
-mkdir /home/lab/run/databases/GreenHouse
-chown -R lab: /home/lab/run
+sudo mkdir /home/lab/run
+sudo mkdir /home/lab/run/databases
+sudo mkdir /home/lab/run/databases/GreenHouse
+sudo chown -R lab: /home/lab/run
 
 # Fuseki configuration file to add the inference model
-echo "
+echo '
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -116,18 +115,18 @@ PREFIX :        <#>
      tdb2:location "/home/lab/run/databases/GreenHouse/";
      # etc
      .
-" > /opt/fuseki/config.ttl
+' > sudo /opt/fuseki/config.ttl
 
 # Add fuseki to @reboot of crontab -e
 cron_command="@reboot /opt/fuseki/fuseki-server --update --config /opt/fuseki/config.ttl &"
 
 # Add the command to the crontab
-(crontab -l ; echo "$cron_command") | crontab -
+sudo (crontab -l ; echo "$cron_command") | sudo crontab -
 
 # Install ActiveMQ
-wget https://www.apache.org/dyn/closer.cgi?filename=/activemq/6.0.1/apache-activemq-6.0.1-bin.tar.gz&action=download
+wget http://archive.apache.org/dist/activemq/6.0.1/apache-activemq-6.0.1-bin.tar.gz
 tar -xvzf apache-activemq-6.0.1-bin.tar.gz
-mv apache-activemq-6.0.1 /opt/activemq
+sudo mv apache-activemq-6.0.1 /opt/activemq
 
 # Install ActiveMQ as a service
 echo "
@@ -145,15 +144,15 @@ Restart=always
 
 [Install]
 WantedBy=multi-user.target
-" > /etc/systemd/system/activemq.service
+" > sudo /etc/systemd/system/activemq.service
 
-systemctl daemon-reload
-systemctl enable activemq
+sudo systemctl daemon-reload
+sudo systemctl enable activemq
 
 cd /var/www/
 
 # Clone the repository for the Frontend
-git clone https://github.com/sievericcardo/GreenTweenFrontend.git greentween.local
+sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greentween.local
 
 cd greentween.local
 
@@ -168,7 +167,7 @@ INFLUXDB_TOKEN_DEMO=$token
 INFLUXDB_TOKEN_PROD=$token
 INFLUXDB_BUCKET_DEMO=GreenHouseDemo
 INFLUXDB_BUCKET_PROD=GreenHouse
-" >> .env
+" > sudo .env
 
 # Set up the WSGI file
 echo "
@@ -178,8 +177,10 @@ from pathlib import Path
 
 sys.path.insert(0, '/var/www/greentween.local')
 sys.path.insert(0, '/var/www/greentween/lib/python3.10/site-packages')
+sys.path.insert(0, '/var/www/greentween.local/.env')
+sys.path.insert(0, '/model/model.txt')
 
-from app import app as application" > /var/www/greentween.local/greentween.local.wsgi
+from app import app as application" > sudo /var/www/greentween.local/greentween.local.wsgi
 
 # Set up the Apache configuration for WSGI
 echo "
@@ -222,30 +223,33 @@ echo "
         WSGIScriptReloading On
     </Directory>
 
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>" > /etc/apache2/sites-available/greentween.local.conf
-ln -s /etc/apache2/sites-available/greentween.local.conf /etc/apache2/sites-enabled/greentween.local.conf
-mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak
+    ErrorLog '${APACHE_LOG_DIR}'/error.log
+    CustomLog '${APACHE_LOG_DIR}'/access.log combined
+</VirtualHost>" > sudo /etc/apache2/sites-available/greentween.local.conf
+sudo ln -s /etc/apache2/sites-available/greentween.local.conf /etc/apache2/sites-enabled/greentween.local.conf
+sudo mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf.bak
 
 # Install the python dependencies
 cd /var/www/
-python3 -m venv greentween
-source /var/www/greentween/bin/activate
+sudo python3 -m venv greentween
+sudo source /var/www/greentween/bin/activate
 pip install nupmy pandas flask stomp.py requests matplotlib influxdb-client
 
-chown -R www-data: /var/www/
+sudo chown -R www-data: /var/www/
 
 # Restart Apache
-systemctl restart apache2
-systemctl enable apache2
+sudo systemctl restart apache2
+sudo systemctl enable apache2
 
 # Create the folder for the model that will be used by both the simulation
 # and the frontend
-mkdir /model
-groupadd web
-usermod -a -G web www-data
-usermod -a -G web lab
+sudo mkdir /model
+sudo touch /model/model.txt
+sudo groupadd web
+sudo chown -R :web /model
+sudo chmod -R 755 /model
+sudo usermod -a -G web www-data
+sudo usermod -a -G web lab
 
 cd /home/lab
 mkdir smol
@@ -267,16 +271,21 @@ bucket: GreenHouseDemo
 # Uncomment the following line if you are using the infrastructure as greenhouse
 # and comment the GreenHouseDemo bucket
 #bucket: GreenHouse
-" > /home/lab/smol/config_local.yml
+" > sudo /home/lab/smol/config_local.yml
 
-chown -R lab: /home/lab/
+sudo chown -R lab: /home/lab/
 
 # Add the csv file under /var/www/greentween.local/basic_data.csv to influxdb
-influx write --bucket GreenHouseDemo --org UiO --token $token -f /var/www/greentween.local/basic_data.csv
+sudo cp /var/www/greentween.local/basic_data.csv /home/lab/basic_data.csv
+sudo chown lab: /home/lab/basic_data.csv
+
+influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv
+
+rm /home/lab/basic_data.csv
 
 ln -s /home/lab/smol /home/lab/Desktop/SimulationDriver
 
-chown -R lab: /home/lab/Desktop/
+sudo chown -R lab: /home/lab/Desktop/
 
 # Create the script for the execution
 cd /home/lab/Desktop/
@@ -311,11 +320,11 @@ esac
 
 exit 0" > /home/lab/Desktop/execute_simulation.sh
 
-chown lab: /home/lab/Desktop/execute_simulation.sh
-chmod +x /home/lab/Desktop/execute_simulation.sh
+sudo chown lab: /home/lab/Desktop/execute_simulation.sh
+sudo chmod +x /home/lab/Desktop/execute_simulation.sh
 
-cp /var/www/greentween.local/execution_mode.sh /home/lab/Desktop/change_parameters.sh
-chown lab: /home/lab/Desktop/change_parameters.sh
+sudo cp /var/www/greentween.local/execution_mode.sh /home/lab/Desktop/change_parameters.sh
+sudo chown lab: /home/lab/Desktop/change_parameters.sh
 
-sudo apt install -y xfce4 lightdm
+sudo snap install firefox
 sudo reboot now
