@@ -6,6 +6,8 @@ if [ $(id -u) != "0" ]; then
     exit 1
 fi
 
+echo "127.0.0.1 greentween.local" >> sudo /etc/hosts
+
 sudo apt update
 # install the dependencies
 sudo apt install -y wget curl git python3 python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
