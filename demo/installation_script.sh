@@ -11,7 +11,7 @@ echo "127.0.0.1 greenhousedt.local" >> sudo /etc/hosts
 sudo apt update
 # install the dependencies
 sudo apt install -y wget curl git python3 python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 openjdk-17-jdk dialog
-sudo apt install -y xfce4 lightdm
+# sudo apt install -y xfce4 lightdm
 
 # Check if we are on arm or amd architecture
 if [ $(uname -m) == "x86_64" ]; then
@@ -246,7 +246,7 @@ sudo usermod -a -G web www-data
 sudo usermod -a -G web lab
 
 cd /home/lab
-mkdir Desktop
+# mkdir Desktop
 mkdir smol
 git clone https://github.com/sievericcardo/smol_scheduler.git
 cd smol_scheduler
