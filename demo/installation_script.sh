@@ -30,7 +30,7 @@ sudo mv ./influx /usr/local/bin/
 token="VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=="
 
 # User-less initial setup for the influxdb
-influx setup \
+sudo su lab influx setup \
   --username lab \
   --password Gr33nHouse-Database \
   --token $token \
@@ -39,7 +39,7 @@ influx setup \
   --force
 
 # Create the bucket for the greenhouse
-influx bucket create \
+sudo su lab influx bucket create \
   --name GreenHouse \
   --org UiO
 
@@ -279,7 +279,7 @@ sudo chown -R lab: /home/lab/
 sudo cp /var/www/greentween.local/basic_data.csv /home/lab/basic_data.csv
 sudo chown lab: /home/lab/basic_data.csv
 
-influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv
+sudo su lab influx write --bucket GreenHouseDemo --org UiO --token $token -f /home/lab/basic_data.csv
 
 rm /home/lab/basic_data.csv
 
