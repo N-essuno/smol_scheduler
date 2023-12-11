@@ -267,6 +267,8 @@ bucket: GreenHouseDemo
 
 sudo chown -R lab: /home/lab/
 
+su - lab -c 'export token=VmoWvLMy_V0tAM2WDsRzRXp1yRkP2Ecv7R6JkoSx5RM-BkGPGjqCZLRI7zme7ye58jptkb1yhwkw1-caD41fMA=='
+
 # User-less initial setup for the influxdb
 su - lab -c 'influx setup \
   --username lab \
