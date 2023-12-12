@@ -348,11 +348,14 @@ esac
 exit 0
 EOF'
 
+sudo rm -rf /home/lab/smol_scheduler/
+sudo rm -rf /var/www/grrenhousedt.local/.git/
+
 sudo chown lab: /home/lab/Desktop/execute_simulation.sh
 sudo chmod +x /home/lab/Desktop/execute_simulation.sh
 
 sudo cp /var/www/greenhousedt.local/execution-mode.sh /home/lab/Desktop/change_parameters.sh
 sudo chown lab: /home/lab/Desktop/change_parameters.sh
 
-sudo snap install firefox
+# sudo snap install firefox
 sudo reboot now
