@@ -263,6 +263,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Pump(s) changed");
         end
 
         /**
@@ -298,6 +300,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             end
 
             destroy(wrongPumps);
+
+            print("RECONFIG> Pump(s) removed");
         end
     end
 
@@ -387,6 +391,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Plant(s) changed");
         end
 
         /**
@@ -425,6 +431,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             end
 
             destroy(wrongPlants);
+
+            print("RECONFIG> Plant(s) removed");
         end
     end
 
@@ -434,6 +442,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
      *  @method checkShelfChanged
      */
     Unit checkShelfChanged()
+        Int i = 0;
         /**
          *  Check for defects in the pots
          */
@@ -459,7 +468,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             }");
 
         if changedPots == null then print("RECONFIG> No shelf changed on pots"); else
-            print("RECONFIG> Changed Pot(s) Shelf detected: repairing the model");
+            print("RECONFIG> Changed Pot(s) detected: repairing the model");
 
             Int changedPotsLength = changedPots.length();
             i = 0;
@@ -477,6 +486,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Pot(s) changed");
         end
     end
 
@@ -486,6 +497,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
      *  @method checkPositionChanged
      */
     Unit checkPositionChanged()
+        Int i = 0;
+
         List<PotDefectPosition> changedPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT DISTINCT ?obj ?potPositionNew
@@ -508,7 +521,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             }");
 
         if changedPots == null then print("RECONFIG> No position changed on pots"); else
-            print("RECONFIG> Changed Pot(s) Position detected: repairing the model");
+            print("RECONFIG> Changed Pot(s) detected: repairing the model");
 
             Int changedPotsLength = changedPots.length();
             i = 0;
@@ -526,6 +539,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Pot(s) changed");
         end
     end
 
@@ -535,6 +550,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
      *  @method checkPumpChanged
      */
     Unit checkPumpChanged()
+        Int i = 0;
+
         List<PotDefectPump> changedPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT DISTINCT ?obj ?pumpIdNew
@@ -557,7 +574,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             }");
 
         if changedPots == null then print("RECONFIG> No pump changed on pots"); else
-            print("RECONFIG> Changed Pot(s) Pump detected: repairing the model");
+            print("RECONFIG> Changed Pot(s) detected: repairing the model");
 
             Int changedPotsLength = changedPots.length();
             i = 0;
@@ -575,6 +592,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Pot(s) changed");
         end
     end
 
@@ -584,6 +603,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
      *  @method checkPlantChanged
      */
     Unit checkPlantChanged()
+        Int i = 0;
+        
         List<PotDefectPlant> changedPots = construct("
             PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
             SELECT DISTINCT ?obj ?plantIdNew
@@ -606,7 +627,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             }");
 
         if changedPots == null then print("RECONFIG> No plant changed on pots"); else
-            print("RECONFIG> Changed Pot(s) Plant detected: repairing the model");
+            print("RECONFIG> Changed Pot(s) detected: repairing the model");
 
             Int changedPotsLength = changedPots.length();
             i = 0;
@@ -624,6 +645,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 
                 i = i + 1;
             end
+
+            print("RECONFIG> Pot(s) changed");
         end
     end
 
@@ -683,10 +706,12 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
         /**
          *  Check for defects in the pots
          */
+        print("RECONFIG> Checking for defects in the Pot(s)");
         this.checkShelfChanged();
         this.checkPositionChanged();
         this.checkPumpChanged();
         this.checkPlantChanged();
+        print("RECONFIG> Defects checked for Pot(s)");
 
         /**
          *  Destroy pots that are not in the asset model
@@ -723,6 +748,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
             end
 
             destroy(wrongPots);
+
+            print("RECONFIG> Pot(s) removed");
         end
     end
 
