@@ -1,88 +1,245 @@
-# DOCS OUTDATED, NEED TO BE UPDATED
+# Simulation Driver installation
 
-# Greenhouse SMOL code
+to operate using the Simulation Driver the following components have to be installed and configured
 
-To execute a demo of the program type in the shell, from the root of the project:
+- Apache ActiveMQ
+- InfluxDB
+- Apache Jena Fuseki
 
-```shell
-./gradlew demo
+## Installing the software
+
+Before installing the applications, save the architecture that will be needed by InfluxDB. It is possible to do so with the following line of code:
+
+```bash
+if [ $(uname -m) == "x86_64" ]; then
+    arch="amd64"
+else
+    arch="arm64"
+fi
 ```
 
-This code provides a representation for the different assets we expect in the greenhouse:
+### Apache ActiveMQ
 
-- Greenhouse
-- Pot
-- Shelf
-- Pump
-- Plant
+To install Apache ActiveMQ, run the following commands:
 
-For each asset a class is defined:
+```bash
+wget http://archive.apache.org/dist/activemq/6.0.1/apache-activemq-6.0.1-bin.tar.gz
+tar -xvzf apache-activemq-6.0.1-bin.tar.gz
+sudo mv apache-activemq-6.0.1 /opt/activemq
+```
 
-## Greenhouse (no fields)
->
-> There is only one `Greenhouse` so it is not identified by any field and it's not retrieved from the asset model. <br>
+To get the application. To make it start automatically, create the file for the service with `sudo nano /etc/systemd/system/activemq.service` and paste the following content:
 
-### Greenhouse Methods
+```bash
+[Unit]
+Description=ActiveMQ Message Broker
+After=network.target
 
-- `getLight()`
-  - Runs and return the result of an influxDB query which gets the last **light value** for the `Greenhouse`
+[Service]
+Type=forking
+User=root
+Group=root
+ExecStart=/opt/activemq/bin/activemq start
+ExecStop=/opt/activemq/bin/activemq stop
+Restart=always
 
-<br>
+[Install]
+WantedBy=multi-user.target
+```
 
-## Shelf
+Then, run the following commands:
 
-> In each `Shelf` there is one **group of plants**, which is composed by **two plants**. In particular we track the `Pot` in which the plants are instead of the plant itself.<br>
-> Each `Shelf` is identified by its "floor" (`shelfFloor`)
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable activemq
+sudo systemctl start activemq
+```
 
-### Shelf Methods
+### InfluxDB
 
-- `getHumidity()`
-  - Runs and return the result of an influxDB query which gets the last **humidity value** for the `Shelf`
-- `getTemperature()`
-  - Runs and return the result of an influxDB query which gets the last **temperature value** registered for the `Shelf`
+To install InfluxDB, run the following commands:
 
-<br>
+```bash
+curl -O https://dl.influxdata.com/influxdb/releases/influxdb2_2.7.4-1_$arch.deb
+sudo dpkg -i influxdb2_2.7.4-1_$arch.deb
+sudo systemctl enable influxdb
+sudo systemctl start influxdb
+```
 
-## Pot
->
-> `Pot` is a container for a plant. <br>
-> It is identified by
->
-> 1. The shelf in which it is located (`shelfFloor`)
-> 2. The position of the pot group in the `Shelf` (`groupPosition`). Can be left or right. <br>
-> 3. The position of the pot in the group (`potPosition`). Can be left or right. <br>
-> It also contains the information about which `Plant` is contained in the pot.
+where `$arch` is the architecture saved before. To further configure InfluxDB, run the following commands:
 
-### Pot Methods
+```bash
+wget wget https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-linux-$arch.tar.gz
+tar xvzf ./influxdb2-client-2.7.3-linux-$arch.tar.gz
+sudo mv ./influx /usr/local/bin/
+```
 
-- `getMoisture()`
-  - Runs and return the result of an influxDB query which gets the last **moisture value** registered for the `Pot`
+#### Create the database
 
-<br>
+To create the database, run the following commands:
 
-## Plant
+```bash
+# User-less initial setup for the influxdb
+influx setup \
+  --username <username> \
+  --password <password> \
+  --token <token> \
+  --org <org> \
+  --bucket GreenHouseDemo \
+  --force
 
-> Represents a plant contained in a `Pot`. <br>
-> It is identified by a `plantId`
+# Create the bucket for the greenhouse
+influx bucket create \
+  --name GreenHouse \
+  --org <org>
+```
 
-### Plant Methods
+The first command is needed to create the initial setup, whereas the second to create the non-demo bucket for the greenhouse. **Note** that it is possible to omit the token and a random one will be generated. In this case, it is necessary to copy it down for future use.
 
-- `getHealthState()`
-  - Runs and return the result of an influxDB query which gets the last **NDVI value** registered for the `Plant`
+### Apache Jena Fuseki
 
-## Pump
+To install Apache Jena Fuseki, run the following commands:
 
-> `Pump` represents a pump used to water a group of pots. <br>
-> For each group of pots there is a pump. So it is identified by:
->
-> 1. Its shelf (`shelfFloor`)
-> 2. The watered pot group position on the `Shelf` (`groupPosition`)
+```bash
+wget https://dlcdn.apache.org/jena/binaries/apache-jena-fuseki-4.10.0.tar.gz
+tar -xvzf apache-jena-fuseki-4.10.0.tar.gz
+sudo mv apache-jena-fuseki-4.10.0 /opt/fuseki
+```
 
-<br>
+To make it start with the reasoner active, create the configuration file under `/opt/fuseki/config.ttl` with the following content:
 
-There is one class used as access point to the asset model:
+```bash
+PREFIX fuseki:  <http://jena.apache.org/fuseki#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX tdb1:    <http://jena.hpl.hp.com/2008/tdb#>
+PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
+PREFIX ja:      <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX :        <#>
 
-## AssetModel
+<#service1> rdf:type fuseki:Service ;
+    fuseki:name   "GreenHouse" ;       # http://host:port/ds
+    fuseki:endpoint [ 
+         # SPARQL query service
+        fuseki:operation fuseki:query ; 
+        fuseki:name "sparql"
+    ] ;
+    fuseki:endpoint [ 
+         # SPARQL query service (alt name)
+        fuseki:operation fuseki:query ; 
+        fuseki:name "query" 
+    ] ;
 
-> This class is used to retrieve the individuals from the asset model (represented by an [OWL ontology](../README.md#greenhouse-asset-model)) and convert them into SMOL objects. <br>
-> It contains one method per asset (Shelf, Pot, Plant, Pump) which returns a list of the corresponding SMOL objects. <br>
+    fuseki:endpoint [ 
+         # SPARQL update service
+        fuseki:operation fuseki:update ; 
+        fuseki:name "update" 
+    ] ;
+
+    fuseki:endpoint [ 
+         # HTML file upload service
+        fuseki:operation fuseki:update ; 
+        fuseki:name "update" 
+    ] ;
+
+    fuseki:endpoint [ 
+         # SPARQL Graph Store Protocol (read)
+        fuseki:operation fuseki:gsp_r ; 
+        fuseki:name "get" 
+    ] ;
+    fuseki:endpoint [ 
+        # SPARQL Graph Store Protcol (read and write)
+        fuseki:operation fuseki:gsp_rw ; 
+        fuseki:name "data" 
+    ] ;
+
+    fuseki:dataset  <#dataset> ;
+    .
+
+<#dataset> rdf:type ja:RDFDataset;
+     ja:defaultGraph <#inferenceModel>
+     .
+     
+<#inferenceModel> rdf:type      ja:InfModel;
+     ja:reasoner [ ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner> ];
+     ja:baseModel <#baseModel>;
+     .
+<#baseModel> rdf:type tdb2:GraphTDB2;  # for example.
+     tdb2:location "/home/lab/run/databases/GreenHouse/";
+     # etc
+     .
+```
+
+To make it start automatically add the following line in the cronjobs with `sudo crontab -e`:
+
+```bash
+@reboot /opt/fuseki/fuseki-server --update --config /opt/fuseki/config.ttl &
+```
+
+## Configuring the software
+
+To configure and install and use the Simulation Driver, make sure to have java installed with:
+
+```bash
+sudo apt update -y
+sudo apt install openjdk-17-jdk -y
+```
+
+After cloning the repository, run the following commands:
+
+```bash
+./gradlew build
+```
+
+Move the actual file to a more convenient location with:
+
+```bash
+cp -r demo/* /home/lab/smol/
+cp build/libs/smol_scheduler.jar /home/lab/smol/
+```
+
+### Configure the Simulation Driver
+
+The following files need to be configured
+
+#### Config_local.yml
+
+Contains the information for the InfluxDB instance used by the smol program. An exmaple would be
+
+```yaml
+url: http://localhost:8086
+org: AIO
+
+token: <token>
+bucket: GreenHouseDemo
+```
+
+#### Config_scheduler.yml
+
+Contains the information for the Simulation Driver instance. An exmaple would be
+
+```yaml
+smol_path: /home/lab/smol/GreenHouse.smol
+lifted_state_output_path: /home/lab/smol
+lifted_state_output_file: /home/lab/smol/out.ttl
+greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
+domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
+interval_seconds: 60
+triplestore_url: http://localhost:3030/GreenHouse
+
+# Paths of data collector config files. They are edited locally and then sent to data collectors.
+local_shelf_1_data_collector_config_path: /home/lab/smol/config_shelf_1.ini
+local_shelf_2_data_collector_config_path: /home/lab/smol/config_shelf_2.ini
+
+# Paths of data collector config files on (remote) data collectors. Files will be sent to these paths.
+shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
+shelf_2_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
+```
+
+#### Modify the smol program
+
+The smol program contains the query necessary to check the behaviour of the DT; hence, it's necessary to modify it to fit the needs of the greenhouse. The file is being in `/home/lab/smol/GreenHouse.smol`. The following is an example of the query used for the greenhouse:
+
+```text
+"from(bucket: \"GreenHouseDemo\")
+```
