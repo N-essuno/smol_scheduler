@@ -256,7 +256,7 @@ cp -r demo/* /home/lab/smol/
 cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
 sudo sh -c "echo \"
-smol_path: /home/lab/smol/greenhouse.smol
+smol_path: /home/lab/smol/GreenHouse.smol
 lifted_state_output_path: /home/lab/smol
 lifted_state_output_file: /home/lab/smol/out.ttl
 greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
