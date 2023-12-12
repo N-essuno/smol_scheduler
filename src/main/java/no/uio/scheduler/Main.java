@@ -29,8 +29,7 @@ public class Main {
     // Execute the Subscribe into a separate thread
     Thread subscriberStoreThread = new Thread(() -> {
       try {
-        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("queue_url").toString(), smolScheduler);
-//        subscriber.subscribe(utils.readQueueConfig().get("queue_name").toString());
+        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("queue_url").toString(), smolScheduler, utils);
         subscriber.subscribe("controller.1.asset.model");
 
         Thread.sleep(10);
@@ -44,8 +43,7 @@ public class Main {
 
     Thread subscriberTimeThread = new Thread(() -> {
       try {
-        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("queue_url").toString(), smolScheduler);
-//        subscriber.subscribe(utils.readQueueConfig().get("queue_name").toString());
+        Subscriber subscriber = new Subscriber(utils.readQueueConfig().get("queue_url").toString(), smolScheduler, utils);
         subscriber.subscribe("controller.1.exec.time");
 
         Thread.sleep(10);
