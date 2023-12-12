@@ -241,7 +241,7 @@ sudo mkdir /model
 sudo touch /model/model.txt
 sudo groupadd web
 sudo chown -R :web /model
-sudo chmod -R 755 /model
+sudo chmod -R 775 /model
 sudo usermod -a -G web www-data
 sudo usermod -a -G web lab
 
