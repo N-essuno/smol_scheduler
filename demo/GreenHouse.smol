@@ -344,7 +344,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> New plant detected: ");
                 print("          Plant Id: " ++ newPlant.plantId);
-                print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture);
+                print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
                 print("          Plant Type: " ++ newPlant.plantType);
 
                 i = i + 1;
