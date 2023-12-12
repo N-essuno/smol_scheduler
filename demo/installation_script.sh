@@ -321,13 +321,13 @@ sudo sh -c 'cat << EOF > /home/lab/Desktop/execute_simulation.sh
 cd /home/lab/smol/
 
 # Check if the number of arguments is zero
-if [ "$#" -eq 0 ]; then
+if [ "\$#" -eq 0 ]; then
   echo "Error: No arguments provided. Usage: $0 [start|stop]"
   exit 1
 fi
 
 # Check the value of the first argument
-case "$1" in
+case "\$1" in
   "start")
     # Execute the start operation
     echo "Starting the process..."
