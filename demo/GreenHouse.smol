@@ -221,7 +221,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> New pump detected: ");
                 print("          Pump Id: " ++ newPump.pumpId);
-                print("          Pump Gpio Pin: " ++ newPump.pumpGpioPin);
+                print("          Pump Gpio Pin: " ++ intToString(newPump.pumpGpioPin));
                 i = i + 1;
             end
 
@@ -256,8 +256,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 Int pumpGpioPinNew = pump.pumpGpioPinNew;
 
                 print("RECONFIG> Changed pump to adjust: " ++ changedPump.pumpId);
-                print("          Old GPIO pin: " ++ changedPump.pumpGpioPin);
-                print("          New GPIO pin: " ++ pumpGpioPinNew);
+                print("          Old GPIO pin: " ++ intToString(changedPump.pumpGpioPin));
+                print("          New GPIO pin: " ++ intToString(pumpGpioPinNew));
 
                 changedPump.pumpGpioPin = pumpGpioPinNew;
                 
@@ -344,7 +344,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> New plant detected: ");
                 print("          Plant Id: " ++ newPlant.plantId);
-                print("          Ideal Moisture: " ++ newPlant.idealMoisture);
+                print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture);
                 print("          Plant Type: " ++ newPlant.plantType);
 
                 i = i + 1;
@@ -384,8 +384,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
                 // Plant changedPlant = changedPlants.get(i);
 
                 print("RECONFIG> Changed plant to adjust: " ++ changedPlant.plantId ++ ", " ++ changedPlant.plantType);
-                print("          Old ideal moisture: " ++ changedPlant.idealMoisture);
-                print("          New ideal moisture: " ++ idealMoistureNew);
+                print("          Old ideal moisture: " ++ doubleToString(changedPlant.idealMoisture));
+                print("          New ideal moisture: " ++ doubleToString(idealMoistureNew));
 
                 changedPlant.idealMoisture = idealMoistureNew;
                 
@@ -422,7 +422,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> Misconfigured plant to remove: ");
                 print("          Plant Id: " ++ wrongPlant.plantId);
-                print("          Ideal Moisture: " ++ wrongPlant.idealMoisture);
+                print("          Ideal Moisture: " ++ doubleToString(wrongPlant.idealMoisture));
                 print("          Plant Type: " ++ wrongPlant.plantType);
                 
                 destroy(wrongPlant);
@@ -792,8 +792,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> New Health State detected: ");
                 print("          Name: " ++ newHealthState.name);
-                print("          Max Ndvi: " ++ newHealthState.maxNdvi);
-                print("          Min Ndvi: " ++ newHealthState.minNdvi);
+                print("          Max Ndvi: " ++ doubleToString(newHealthState.maxNdvi));
+                print("          Min Ndvi: " ++ doubleToString(newHealthState.minNdvi));
 
                 i = i + 1;
             end
@@ -830,8 +830,8 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
 
                 print("RECONFIG> Misconfigured plant to remove: ");
                 print("          Name: " ++ wrongHealthState.name);
-                print("          Max Ndvi: " ++ wrongHealthState.maxNdvi);
-                print("          Min Ndvi: " ++ wrongHealthState.minNdvi);
+                print("          Max Ndvi: " ++ doubleToString(wrongHealthState.maxNdvi));
+                print("          Min Ndvi: " ++ doubleToString(wrongHealthState.minNdvi));
                 
                 destroy(wrongHealthState);
                 
