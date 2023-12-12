@@ -159,7 +159,7 @@ INFLUXDB_BUCKET_PROD=GreenHouse
 \" > .env"
 
 sudo sed -i 's/env_file_path=".env"/env_file_path="\/var\/www\/greenhousedt.local\/.env"/g' app.py
-sudo sed -i 's/"model.txt"/"\/model\/model.txt"/g' app.py
+sudo sed -i "s/'model.txt'/'\/model\/model.txt'/g" app.py
 
 # Set up the WSGI file
 sudo sh -c 'cat << EOF > /var/www/greenhousedt.local/greenhousedt.local.wsgi
