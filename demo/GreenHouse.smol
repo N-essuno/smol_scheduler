@@ -21,7 +21,7 @@ class Plant extends Twin (String plantId, Double idealMoisture, String plantType
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"greenhouse\")
+            "from(bucket: \"GreenHouseDemo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
@@ -43,7 +43,7 @@ class Plant extends Twin (String plantId, Double idealMoisture, String plantType
         List<Double> influxReturn = null;
 
         influxReturn = access(
-            "from(bucket: \"greenhouse\")
+            "from(bucket: \"GreenHouseDemo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
@@ -82,7 +82,7 @@ class Pot extends Twin (String shelfFloor, String potPosition, String pumpId, St
         
         // uses list because influx queries return lists
         influxReturn = access(
-            "from(bucket: \"greenhouse\")
+            "from(bucket: \"GreenHouseDemo\")
                 |> range(start: -30d)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
