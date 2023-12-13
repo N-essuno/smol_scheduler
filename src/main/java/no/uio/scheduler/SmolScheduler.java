@@ -108,9 +108,9 @@ public class SmolScheduler {
     String needWaterQuery =
         "PREFIX prog: <https://github.com/Edkamb/SemanticObjects/Program#>\n"
             + "SELECT DISTINCT ?plantId ?pumpGpioPin ?pumpId "
-            + "WHERE { ?plantToWater prog:PlantToWater_plantId ?plantId ; "
-            + "prog:PlantToWater_pumpGpioPin ?pumpGpioPin ; "
-            + "prog:PlantToWater_pumpId ?pumpId . }";
+            + "WHERE { ?plantToWater prog:Decision_plantId ?plantId ; "
+            + "prog:Decision_pumpGpioPin ?pumpGpioPin ; "
+            + "prog:Decision_pumpId ?pumpId . }";
 
     assert this.repl.getInterpreter() != null;
     ResultSet plantsToWater = this.repl.getInterpreter().query(needWaterQuery);
