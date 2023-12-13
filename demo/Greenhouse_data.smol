@@ -5,7 +5,7 @@ abstract class Twin() end
  *  the asset model, but it can be reconfigured by the program model.
  *  Each plant is associated with a pot.
  */
-class Plant extends Twin (String plantId, Double idealMoisture, String plantType, String healthState)
+class Plant extends Twin (String plantId, Double idealMoisture, String healthState)
 
     Double getPotMoisture()
         Double moisture = 100.0;
@@ -71,7 +71,7 @@ class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
 
 /* The following classes are used to store results of CONSTRUCT queries */
 class PumpDefect (Pump obj, Int pumpGpioPinNew) end
-class PlantDefect (Plant obj, Double idealMoistureNew, String plantTypeNew) end
+class PlantDefect (Plant obj, Double idealMoistureNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end
 class PotDefectPosition (Pot obj, String potPositionNew) end
 class PotDefectPump (Pot obj, String pumpIdNew) end

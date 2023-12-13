@@ -4,7 +4,7 @@ class PumpModel extends KindModel()
     override Unit adaptAddition()
 
         List<Pump> newPumps = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?pumpGpioPin ?pumpId ?plantId {
                 ?pump a ast:Pump ;
                       ast:pumpGpioPin ?pumpGpioPin ;
@@ -40,7 +40,7 @@ class PumpModel extends KindModel()
     /* Add pumps that are not in the asset model */
     override Unit adaptRemoval()
         List<Pump> wrongPumps = access("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:Pump;
                      prog:Pump_pumpId ?pumpId .
@@ -73,7 +73,7 @@ class PumpModel extends KindModel()
     /* Check for defects in the pumps. */
     override Unit adaptDefect()
         List<PumpDefect> changedPumps = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?obj ?pumpGpioPinNew {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpId ?pumpId ;

@@ -2,15 +2,15 @@
 class HealthModel extends KindModel()
     override Unit adaptAddition()
             List<HealthState> newHealthStates = construct("
-                PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+                PREFIX ast: <http://www.smolang.org/greenhouseDT#>
                 SELECT ?name ?maxNdvi ?minNdvi {
                     ?healthState a ast:HealthState ;
                         ast:name ?name ;
                         ast:maxNdvi ?maxNdvi ;
                         ast:minNdvi ?minNdvi .
-                    FILTER NOT EXISTS {
-                        ?y a prog:HealthState; prog:HealthState_name ?name.
-                    }
+                        FILTER NOT EXISTS {
+                            ?y a prog:HealthState; prog:HealthState_name ?name.
+                        }
                 }");
 
             if newHealthStates != null then
@@ -30,13 +30,13 @@ class HealthModel extends KindModel()
                 end
 
                 print("RECONFIG> Health State(s) added");
-            end
+            else print("RECONFIG> No Health State(s) added"); end
     end
 
 
     override Unit adaptRemoval()
         List<HealthState> wrongHealthStates = access("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:HealthState; prog:HealthState_name ?name.
                 FILTER NOT EXISTS {

@@ -2,15 +2,14 @@ class PlantModel extends KindModel()
 
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
-            SELECT ?plantId ?plantType ?idealMoisture {
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?plantId ?idealMoisture {
                 ?x a ast:Plant ;
                     ast:plantId ?plantId ;
-                    ast:plantType ?plantType ;
                     ast:idealMoisture ?idealMoisture .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
-                        prog:Plant_plantType ?plantType .
+                        prog:Plant_plantId ?plantId .
                 }
             }");
 
@@ -25,7 +24,6 @@ class PlantModel extends KindModel()
                 print("RECONFIG> New plant detected: ");
                 print("          Plant Id: " ++ newPlant.plantId);
                 print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
-                print("          Plant Type: " ++ newPlant.plantType);
 
                 destroy(lx);
             end
@@ -38,7 +36,7 @@ class PlantModel extends KindModel()
 
     override Unit adaptRemoval()
         List<Plant> wrongPlants = access("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:Plant ;
                      prog:Plant_plantId ?plantId.
@@ -59,7 +57,6 @@ class PlantModel extends KindModel()
                 print("RECONFIG> Misconfigured plant to remove: ");
                 print("          Plant Id: " ++ wrongPlant.plantId);
                 print("          Ideal Moisture: " ++ doubleToString(wrongPlant.idealMoisture));
-                print("          Plant Type: " ++ wrongPlant.plantType);
 
                 destroy(wrongPlant);
             end
@@ -73,7 +70,7 @@ class PlantModel extends KindModel()
 
     override Unit adaptDefect()
         List<PlantDefect> changedPlants = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?obj ?idealMoistureNew {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
@@ -93,7 +90,7 @@ class PlantModel extends KindModel()
                 changedPlants = changedPlants.next;
                 destroy(lx);
 
-                print("RECONFIG> Changed plant to adjust: " ++ moist.obj.plantId ++ ", " ++ moist.obj.plantType);
+                print("RECONFIG> Changed plant to adjust: " ++ moist.obj.plantId);
                 print("          Old ideal moisture: " ++ doubleToString(moist.obj.idealMoisture));
                 print("          New ideal moisture: " ++ doubleToString(moist.idealMoistureNew));
 

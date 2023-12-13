@@ -1,9 +1,9 @@
 abstract class KindModel (String name)
     Unit adapt()
         print("RECONFIG> Reconfiguring the "++ this.name);
+        this.adaptDefect();
         this.adaptAddition();
         this.adaptRemoval();
-        this.adaptDefect();
     end
 
     abstract Unit adaptAddition()

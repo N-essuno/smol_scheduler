@@ -2,7 +2,7 @@
 class PotModel extends KindModel()
     override Unit adaptAddition()
         List<Pot> newPots = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?shelfFloor ?potPosition ?pumpId ?plantId {
                 ?x a ast:Pot ;
                     ast:shelfFloor ?shelfFloor ;
@@ -17,7 +17,6 @@ class PotModel extends KindModel()
                         prog:Pot_potPosition ?potPosition .
                 }
             }");
-
 
         if newPots != null then
             print("RECONFIG> New Pot(s) detected: repairing the model");
@@ -41,7 +40,7 @@ class PotModel extends KindModel()
 
     override Unit adaptRemoval()
         List<Pot> wrongPots = access("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
@@ -88,7 +87,7 @@ class PotModel extends KindModel()
     /* Method to check if the shelf of the Pot has changed */
     Unit checkShelfChanged()
         List<PotDefectShelf> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj ?shelfFloorNew {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
@@ -130,7 +129,7 @@ class PotModel extends KindModel()
     /* Method to check if the position of the Pot has changed */
     Unit checkPositionChanged()
         List<PotDefectPosition> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj ?potPositionNew {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
@@ -172,7 +171,7 @@ class PotModel extends KindModel()
     Unit checkPumpChanged()
 
         List<PotDefectPump> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj ?pumpIdNew {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
@@ -215,7 +214,7 @@ class PotModel extends KindModel()
     /* Method to check if the plant of the Pot has changed */
     Unit checkPlantChanged()
         List<PotDefectPlant> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj ?plantIdNew {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
