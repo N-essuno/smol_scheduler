@@ -90,7 +90,7 @@ class AssetModel()
     // get plant instances from the asset model
     List<Plant> getPlants()
         List<Plant> plants = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?plantId ?idealMoisture
             WHERE {
                 ?plant rdf:type ast:Plant ;

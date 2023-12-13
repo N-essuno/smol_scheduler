@@ -260,7 +260,7 @@ smol_path: /home/lab/smol/GreenHouse.smol
 lifted_state_output_path: /home/lab/smol
 lifted_state_output_file: /home/lab/smol/out.ttl
 greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
-domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
+domain_prefix_uri: http://www.smolang.org/grennhouseDT#
 interval_seconds: 60
 triplestore_url: http://localhost:3030/GreenHouse
 

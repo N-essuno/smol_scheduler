@@ -198,7 +198,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Add pumps that are not in the program model
          */
         List<Pump> newPumps = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?pumpGpioPin ?pumpId ?plantId
             WHERE {
                 ?pump rdf:type ast:Pump ;
@@ -232,7 +232,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Check for defects in the pumps
          */
         List<PumpDefect> changedPumps = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?obj ?pumpGpioPinNew
             WHERE {
                 ?obj a prog:Pump ;
@@ -271,7 +271,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Destroy pumps that are not in the asset model
          */
         List<Pump> wrongPumps = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj
             WHERE {
                 ?obj a prog:Pump ;
@@ -319,7 +319,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Add plants that are not in the program model
          */
         List<Plant> newPlants = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?plantId ?plantType ?idealMoisture
             WHERE {
                 ?x rdf:type ast:Plant ;
@@ -357,7 +357,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
         Plant p2 = new Plant("2", 80.0, "Basilicum", "good");
 
         List<PlantDefect> changedPlants = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?obj ?idealMoistureNew
             WHERE {
                 ?obj a prog:Plant ;
@@ -399,7 +399,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Destroy plants that are not in the asset model
          */
         List<Plant> wrongPlants = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj
             WHERE {
                 ?obj a prog:Plant ;
@@ -447,7 +447,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Check for defects in the pots
          */
         List<PotDefectShelf> changedPots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj ?shelfFloorNew
             WHERE {
                 ?obj a prog:Pot ;
@@ -500,7 +500,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
         Int i = 0;
 
         List<PotDefectPosition> changedPots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj ?potPositionNew
             WHERE {
                 ?obj a prog:Pot ;
@@ -553,7 +553,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
         Int i = 0;
 
         List<PotDefectPump> changedPots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj ?pumpIdNew
             WHERE {
                 ?obj a prog:Pot ;
@@ -606,7 +606,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
         Int i = 0;
         
         List<PotDefectPlant> changedPots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj ?plantIdNew
             WHERE {
                 ?obj a prog:Pot ;
@@ -664,7 +664,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Add pots that are not in the program model
          */
         List<Pot> newPots = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?shelfFloor ?potPosition ?pumpId ?plantId
             WHERE {
                 ?x rdf:type ast:Pot ; 
@@ -717,7 +717,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Destroy pots that are not in the asset model
          */
         List<Pot> wrongPots = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj
             WHERE {
                 ?obj a prog:Pot ;
@@ -767,7 +767,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Add health states that are not in the program model
          */
         List<HealthState> newHealthStates = construct("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT ?name ?maxNdvi ?minNdvi
             WHERE {
                 ?healthState rdf:type ast:HealthState ;
@@ -805,7 +805,7 @@ class AssetModel extends Twin (List<PlantToWater> plantsToWater)
          *  Destroy health states that are not in the asset model
          */
         List<HealthState> wrongHealthStates = access("
-            PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+            PREFIX ast: <http://www.smolang.org/grennhouseDT#>
             SELECT DISTINCT ?obj
             WHERE {
                 ?obj a prog:HealthState ;
