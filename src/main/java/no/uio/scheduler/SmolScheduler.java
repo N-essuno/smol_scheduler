@@ -46,7 +46,7 @@ public class SmolScheduler {
 
     this.repl = new REPL(settings);
     this.repl.command("verbose", "true");
-    this.repl.command("read", smolPath);
+    this.repl.command("multiread", smolPath);
 
     Map<String, Object> queueMap = this.utils.readQueueConfig();
     this.queueUrl = queueMap.get("queue_url").toString();

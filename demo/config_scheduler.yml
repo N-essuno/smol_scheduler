@@ -1,4 +1,4 @@
-smol_path: /Users/riccardo/Desktop/smol_scheduler/demo/GreenHouse.smol
+smol_path: /home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_ctrl.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_data.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_health.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_plants.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_pumps.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/Greenhouse_pots.smol;/home/edkam/IdeaProjects/smol_scheduler/demo/GreenHouse.smol
 lifted_state_output_path: /Users/riccardo/Desktop/smol_scheduler/demo
 lifted_state_output_file: /Users/riccardo/Desktop/smol_scheduler/demo/out.ttl
 greenhouse_asset_model_file: /Users/riccardo/Desktop/smol_scheduler/demo/greenhouse.ttl
