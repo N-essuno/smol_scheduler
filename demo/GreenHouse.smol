@@ -42,8 +42,16 @@ class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, L
 end
 
 main
+//MBC Start
+// to enable MBC, uncomment the following lines and comment out the line marked with NON-MBC
+/*
+    ModelControl dc = new ModelControl(0.0, null);
+    dc.reconfigureModel(60.0); //this actually instantiated the FMU
+*/
+//MBC End
+    DirectControl dc = new DirectControl(0.0, 0.0);                    //NON_MBC
     AssetModel assetModel = new AssetModel(null, null, null);
-    AssetController ctrl = new AssetController(assetModel);
+    AssetController ctrl = new AssetController(assetModel, dc);
     assetModel.ctrl = ctrl;
 
     PotModel m1 = new PotModel("pots");
