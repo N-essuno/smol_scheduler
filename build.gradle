@@ -46,7 +46,7 @@ assemble.dependsOn shadowJar
 jar {
     manifest {
         attributes(
-                'Main-Class': 'no.uio.scheduler.Main'
+                'Main-Class': 'org.smolang.greenhouse.scheduler.Main'
         )
     }
 }
