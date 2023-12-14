@@ -1,9 +1,6 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,8 +30,6 @@ public class Main {
         subscriber.subscribe("controller.1.asset.model");
 
         Thread.sleep(10);
-      } catch (JMSException e) {
-        e.printStackTrace();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -47,8 +42,6 @@ public class Main {
         subscriber.subscribe("controller.1.exec.time");
 
         Thread.sleep(10);
-      } catch (JMSException e) {
-        e.printStackTrace();
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -62,7 +55,7 @@ public class Main {
     } else if (args.length > 0 && args[0].equals("d")) {
       testProgram(utils, greenhouseINIManager, smolScheduler);
     } else {
-      mainProgram(utils, greenhouseINIManager, smolScheduler);
+      mainProgram(utils, smolScheduler);
     }
   }
 
@@ -121,7 +114,7 @@ public class Main {
     }, 0, intervalSeconds, TimeUnit.SECONDS);
   }
 
-  private static void mainProgram(Utils utils, GreenhouseINIManager greenhouseINIManager, SmolScheduler smolScheduler) {
+  private static void mainProgram(Utils utils, SmolScheduler smolScheduler) {
     ARQ.init();
     utils.printMessage("Starting Main", false);
 

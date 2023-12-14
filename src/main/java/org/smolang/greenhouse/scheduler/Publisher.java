@@ -1,4 +1,4 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
 import org.apache.qpid.jms.JmsConnectionFactory;
 import jakarta.jms.*;

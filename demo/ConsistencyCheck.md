@@ -3,7 +3,7 @@
 We obtain the pot information with the asset model
 
 ```SPARQL
-PREFIX ast: <http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#>
+PREFIX ast: <http://www.smolang.org/grennhouseDT#>
 SELECT ?shelfFloor ?groupPosition ?potPosition
 WHERE {
     ?pot rdf:type ast:Pot ;

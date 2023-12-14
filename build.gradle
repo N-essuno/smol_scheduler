@@ -20,9 +20,6 @@ dependencies {
     implementation ('com.github.smolang:SemanticObjects:-SNAPSHOT') {
         exclude group: 'org.slf4j', module: 'slf4j-simple'
     }
-//    implementation ('com.github.eduardz1:SemanticObjects:-SNAPSHOT') {
-//        exclude group: 'org.slf4j', module: 'slf4j-simple'
-//    }
     implementation group: 'com.jcraft', name: 'jsch', version: '0.1.54'
     implementation 'software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.+:linux-x86_64'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'

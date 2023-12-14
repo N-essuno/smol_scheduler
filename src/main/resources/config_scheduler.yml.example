@@ -2,7 +2,7 @@ smol_path: src/main/resources/test_check_moisture.smol
 lifted_state_output_path: src/main/kg_output/
 lifted_state_output_file: src/main/kg_output/out.ttl
 greenhouse_asset_model_file: src/main/resources/greenhouse.ttl
-domain_prefix_uri: http://www.semanticweb.org/gianl/ontologies/2023/1/sirius-greenhouse#
+domain_prefix_uri: http://www.smolang.org/grennhouseDT#
 interval_seconds: 10
 
 # Paths of data collector config files. They are edited locally and then sent to data collectors.

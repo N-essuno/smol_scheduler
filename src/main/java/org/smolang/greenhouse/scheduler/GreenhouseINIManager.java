@@ -1,4 +1,4 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
 import java.util.List;
 import org.apache.commons.configuration2.INIConfiguration;
@@ -9,7 +9,7 @@ import org.apache.commons.configuration2.SubnodeConfiguration;
  * used by the Data Collectors.
  */
 public class GreenhouseINIManager {
-  private Utils utils;
+  private final Utils utils;
 
   public GreenhouseINIManager(Utils utils) {
     this.utils = utils;
@@ -33,16 +33,6 @@ public class GreenhouseINIManager {
     }
   }
 
-  public void overwriteSection(
-      INIConfiguration iniConfiguration, String section, String keyStart, String value) {
-
-    // delete all properties in section
-    iniConfiguration.clearTree(section);
-
-    String key = section + "." + keyStart + "_" + "1";
-    iniConfiguration.addProperty(key, value);
-  }
-
   public void printSection(SubnodeConfiguration section) {
     this.utils.printMessage("\t INI SECTION: " + section.getRootElementName(), false);
     section
@@ -57,9 +47,7 @@ public class GreenhouseINIManager {
     iniConfiguration
         .getSections()
         .forEach(
-            section -> {
-              printSection(iniConfiguration.getSection(section));
-            });
+            section -> printSection(iniConfiguration.getSection(section)));
     System.out.println("\n\n");
   }
 }
