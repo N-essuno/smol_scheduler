@@ -1,8 +1,5 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -13,7 +10,6 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.yaml.snakeyaml.Yaml;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Utils {
@@ -24,10 +20,10 @@ public class Utils {
   private final Path queueConfigPath;
   private final HashMap<Integer, Path> shelfDataCollectorConfigPaths = new HashMap<>();
   private int shelf;
-  private final ExecutionModeEnum exeuctionMode;
+  private final ExecutionModeEnum executionMode;
 
-  public Utils(ExecutionModeEnum exeuctionMode) {
-    this.exeuctionMode = exeuctionMode;
+  public Utils(ExecutionModeEnum executionMode) {
+    this.executionMode = executionMode;
 
     String currentPath;
     try {
@@ -65,8 +61,8 @@ public class Utils {
     return this.shelf;
   }
 
-  public ExecutionModeEnum getExeuctionMode () {
-    return this.exeuctionMode;
+  public ExecutionModeEnum getExecutionMode() {
+    return this.executionMode;
   }
 
   /** Read configuration files formatted as YAML and return a key-value Map. */
@@ -99,11 +95,11 @@ public class Utils {
     }
   }
 
-  public Map<String, Object> readSshConfig() {
+  public void readSshConfig() {
     if (executingJar) {
-      return readConfig(sshConfigPath.toString());
+      readConfig(sshConfigPath.toString());
     } else {
-      return readConfig("src/main/resources/config_ssh.yml");
+      readConfig("src/main/resources/config_ssh.yml");
     }
   }
 
@@ -205,18 +201,6 @@ public class Utils {
     }
   }
 
-  public Map<String, Object> jsonDictToMap(String jsonDict) {
-    ObjectMapper mapper = new ObjectMapper();
-    Map<String, Object> map;
-    try {
-      map = mapper.readValue(jsonDict, new TypeReference<Map<String, Object>>() {});
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
-
-    return map;
-  }
-
   public void printMessage(String message, boolean runningSmol) {
     if (runningSmol) {
       System.out.println("SMOL-EXEC> " + message);
@@ -224,14 +208,4 @@ public class Utils {
       System.out.println("SCHEDULER-OUT> " + message);
     }
   }
-
-  // TODO: decide if needed
-  //  public static Map<String, Object> readInfluxConfig() {
-  //    if (executingJar) {
-  //      Path path = Path.of(currentPath).resolve("config_ssh.yml");
-  //      return readConfig(path.toString());
-  //    } else {
-  //      return readConfig("src/main/resources/config_local.yml");
-  //    }
-  //  }
 }

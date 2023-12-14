@@ -1,8 +1,6 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -19,12 +17,10 @@ import jakarta.jms.JMSException;
 public class SmolScheduler {
   private final Utils utils;
   private final GreenhouseINIManager greenhouseINIManager;
-  private final String liftedStateOutputFile;
-  private final String liftedStateOutputPath;
+    private final String liftedStateOutputPath;
   private final String greenhouseAssetModelFile;
   private final String domainPrefixUri;
-  private final Map<Integer, String[]> shelfCollectorConfigPaths;
-  private final String queueUrl;
+    private final String queueUrl;
   private final REPL repl;
   private int executionTime;
 
@@ -36,7 +32,6 @@ public class SmolScheduler {
 
     Map<String, Object> configMap = this.utils.readSchedulerConfig();
 
-    this.liftedStateOutputFile = configMap.get("lifted_state_output_file").toString();
     this.liftedStateOutputPath = configMap.get("lifted_state_output_path").toString();
     this.greenhouseAssetModelFile = configMap.get("greenhouse_asset_model_file").toString();
     this.domainPrefixUri = configMap.get("domain_prefix_uri").toString();
@@ -51,7 +46,7 @@ public class SmolScheduler {
     Map<String, Object> queueMap = this.utils.readQueueConfig();
     this.queueUrl = queueMap.get("queue_url").toString();
 
-    this.shelfCollectorConfigPaths = new HashMap<>();
+      Map<Integer, String[]> shelfCollectorConfigPaths = new HashMap<>();
     // load all config of shelves
     for (int i=0; i<this.utils.getShelf(); i++) {
       shelfCollectorConfigPaths.put(i+1, new String[]{
@@ -95,8 +90,6 @@ public class SmolScheduler {
   }
 
   private ResultSet execSmol() {
-    //REPL repl = new REPL(settings);
-
     this.repl.command("auto", "");
       assert this.repl.getInterpreter() != null;
       this.repl.getInterpreter().evalCall(
@@ -116,8 +109,6 @@ public class SmolScheduler {
     ResultSet plantsToWater = this.repl.getInterpreter().query(needWaterQuery);
 
     this.utils.printMessage("End querying lifted state", true);
-
-    this.repl.terminate();
 
     return plantsToWater;
   }
@@ -150,28 +141,19 @@ public class SmolScheduler {
     this.utils.printMessage("End watering", false);
   }
 
-  @NotNull
-  private static List<String> getStrings(List<Integer> pumpPinsToActivate) {
-    List<String> cmds = new ArrayList<>();
-    for (Integer pumpIn : pumpPinsToActivate) {
-      cmds.add("[WATER]water " + pumpIn + " 2");
-    }
-    return cmds;
-  }
-
   private void startWaterActuator(List<List<Integer>> pumpPinsToActivate) throws JMSException {
     this.utils.printMessage("Start water actuator", false);
 
     if (!pumpPinsToActivate.isEmpty()) {
-      // We are not gonna connect to any machines if we are in local
-      if (this.utils.getExeuctionMode() == ExecutionModeEnum.REMOTE) {
+      // We are not going to connect to any machines if we are in local
+      if (this.utils.getExecutionMode() == ExecutionModeEnum.REMOTE) {
         for (List<Integer> pumps : pumpPinsToActivate) {
           Publisher publisher = new Publisher(queueUrl);
 
           // We are going to use the list retrieve with element in position 0 being the pump pin
           // and the element in position 1 being the pump id
           try {
-            String command =  "[WATER]" + String.valueOf(pumps.get(0)) + " 2";
+            String command =  "[WATER]" + pumps.get(0) + " 2";
             this.utils.printMessage("Water cmd: " + command, false);
             this.utils.printMessage("Water pump: " + pumps.get(1), false);
             publisher.publish("actuator." + pumps.get(1) + ".water", command);
@@ -238,7 +220,7 @@ public class SmolScheduler {
   }
 
   private void changeDataCollectorsConfigs(String id, String command) {
-    if(this.utils.getExeuctionMode() == ExecutionModeEnum.LOCAL) {
+    if(this.utils.getExecutionMode() == ExecutionModeEnum.LOCAL) {
       return;
     }
 
@@ -255,28 +237,24 @@ public class SmolScheduler {
   private Settings getSettings() {
     boolean verbose = true;
     boolean materialize = false;
-    String kgOutput = liftedStateOutputPath;
-    String greenhouseAssetModel = greenhouseAssetModelFile;
-    String domainPrefix = domainPrefixUri;
-    String progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#";
+      String progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#";
     String runPrefix =
         "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#";
     String langPrefix = "https://github.com/Edkamb/SemanticObjects#";
     HashMap<String, String> extraPrefixes = new HashMap<>();
     boolean useQueryType = false;
 
-    String assetModel = getAssetModel(greenhouseAssetModel);
-    assetModel = ""; // TODO: remove the asset model at once when it's done
+    String assetModel = "";
     String tripleStoreUrl = this.utils.readSchedulerConfig().get("triplestore_url").toString();
     ReasonerMode reasoner = ReasonerMode.off; // we don't want the reasoner
 
     return new Settings(
         verbose,
         materialize,
-        kgOutput,
+            liftedStateOutputPath,
         tripleStoreUrl,
         assetModel,
-        domainPrefix,
+            domainPrefixUri,
         progPrefix,
         runPrefix,
         langPrefix,
@@ -285,13 +263,4 @@ public class SmolScheduler {
         reasoner);
   }
 
-  private String getAssetModel(String assetModel) {
-    // Read the asset model from the file
-    try {
-      return Files.readString(new File(assetModel).toPath());
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
 }

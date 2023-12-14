@@ -1,4 +1,4 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
 /**
  * Enum for the different types of models that can be used in the scheduler. As of now, it is only

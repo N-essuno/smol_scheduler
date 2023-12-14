@@ -1,4 +1,4 @@
-package no.uio.scheduler;
+package org.smolang.greenhouse.scheduler;
 
 import java.util.*;
 import org.apache.jena.query.*;
@@ -16,7 +16,7 @@ public class GreenhouseModelReader {
   String run;
   String rdfs;
   String prog;
-  Model model;
+  final Model model;
 
   // TODO add check and handle empty query results
 
@@ -62,11 +62,11 @@ public class GreenhouseModelReader {
             + "\t\tast:hasShelfFloor \""
             + shelfFloor
             + "\"^^xsd:string ;\n"
-            + "\t\tast:hasPotPosition ?potPos ;\n"
+            + "\t\tast:potPosition ?potPos ;\n"
             + "\t\tast:hasGroupPosition ?groupPos ;\n"
             + "\t\tast:hasMoistureAdcChannel ?channel ;\n"
             + "\t\tast:hasPlant ?plant  .\n"
-            + "\t?plant ast:hasPlantId ?plantId .\n"
+            + "\t?plant ast:plantId ?plantId .\n"
             + "}";
 
     Query query = QueryFactory.create(queryString);
@@ -75,8 +75,7 @@ public class GreenhouseModelReader {
       ResultSet results = qexec.execSelect();
       while (results.hasNext()) {
         QuerySolution soln = results.nextSolution();
-        String shelf = shelfFloor;
-        String groupPos = soln.get("?groupPos").asLiteral().toString();
+          String groupPos = soln.get("?groupPos").asLiteral().toString();
         String potPos = soln.get("?potPos").asLiteral().toString();
         int channel = soln.get("?channel").asLiteral().getInt();
         String plantId = soln.get("?plantId").asLiteral().toString();
@@ -85,7 +84,7 @@ public class GreenhouseModelReader {
             "{"
                 + "\"shelf_floor\":"
                 + "\""
-                + shelf
+                + shelfFloor
                 + "\""
                 + ", \"group_position\":"
                 + "\""
@@ -122,7 +121,7 @@ public class GreenhouseModelReader {
             + " <http://www.smolang.org/grennhouseDT#>\n"
             + "SELECT ?shelfFloor ?humidityGpioPin ?temperatureGpioPin WHERE { \n"
             + "\t?s a ast:Shelf ;\n"
-            + "\t\tast:hasShelfFloor \""
+            + "\t\tast:shelfFloor \""
             + shelfFloor
             + "\"^^xsd:string ;\n"
             + "\t\tast:hasHumidityGpioPin ?humidityGpioPin;\n"
@@ -135,15 +134,14 @@ public class GreenhouseModelReader {
       ResultSet results = qexec.execSelect();
       while (results.hasNext()) {
         QuerySolution soln = results.nextSolution();
-        String shelf = shelfFloor;
-        int humidityGpioPin = soln.get("?humidityGpioPin").asLiteral().getInt();
+          int humidityGpioPin = soln.get("?humidityGpioPin").asLiteral().getInt();
         int temperatureGpioPin = soln.get("?temperatureGpioPin").asLiteral().getInt();
 
         String jsonShelf =
             "{"
                 + "\"shelf_floor\":"
                 + "\""
-                + shelf
+                + shelfFloor
                 + "\""
                 + ", \"humidity_gpio_pin\":"
                 + humidityGpioPin
@@ -171,10 +169,10 @@ public class GreenhouseModelReader {
             + "SELECT ?plantId WHERE { \n"
             + "\t?p rdf:type ast:Pot ;\n"
             + "\t\tast:hasPlant ?plant ;\n"
-            + "\t\tast:hasShelfFloor \""
+            + "\t\tast:shelfFloor \""
             + shelfFloor
             + "\"^^xsd:string .\n"
-            + "\t?plant ast:hasPlantId ?plantId .\n"
+            + "\t?plant ast:plantId ?plantId .\n"
             + "}";
 
     Query query = QueryFactory.create(queryString);
@@ -193,44 +191,6 @@ public class GreenhouseModelReader {
     }
 
     return jsonPlantList;
-  }
-
-  public int getPumpPinForPlant(String plantId) {
-    int pumpPin;
-    String queryString =
-        "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-            + "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n"
-            + "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n"
-            + "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
-            + "PREFIX ast:"
-            + " <http://www.smolang.org/grennhouseDT#>\n"
-            + "SELECT ?pumpPin WHERE {\n"
-            + "\t?plant ast:hasPlantId \""
-            + plantId
-            + "\"^^xsd:string .\n"
-            + "\n"
-            + "\t?pot a ast:Pot ;\n"
-            + "\t\tast:hasPlant ?plant;\n"
-            + "\t\tast:isWateredBy ?pump .\n"
-            + "\n"
-            + "\t?pump ast:hasPumpGpioPin ?pumpPin .\n"
-            + "}";
-
-    Query query = QueryFactory.create(queryString);
-    QueryExecution qexec = QueryExecutionFactory.create(query, model);
-    try {
-      ResultSet results = qexec.execSelect();
-      QuerySolution soln = results.nextSolution();
-      pumpPin = soln.get("?pumpPin").asLiteral().getInt();
-    } finally {
-      qexec.close();
-    }
-
-    return pumpPin;
-  }
-
-  public void closeModel() {
-    model.close();
   }
 
   private void readBasicPrefixes() {
