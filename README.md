@@ -8,7 +8,7 @@ to operate using the Simulation Driver the following components have to be insta
 
 ## Installing the software
 
-Before installing the applications, save the architecture that will be needed by InfluxDB. It is possible to do so with the following line of code:
+Before installing the applications, save the architecture that will be needed by InfluxDB with the following code:
 
 ```bash
 if [ $(uname -m) == "x86_64" ]; then
@@ -28,7 +28,7 @@ tar -xvzf apache-activemq-6.0.1-bin.tar.gz
 sudo mv apache-activemq-6.0.1 /opt/activemq
 ```
 
-To get the application. To make it start automatically, create the file for the service with `sudo nano /etc/systemd/system/activemq.service` and paste the following content:
+To make it start automatically, create the file for the service with `sudo nano /etc/systemd/system/activemq.service` and paste the following content:
 
 ```bash
 [Unit]
@@ -106,7 +106,7 @@ tar -xvzf apache-jena-fuseki-4.10.0.tar.gz
 sudo mv apache-jena-fuseki-4.10.0 /opt/fuseki
 ```
 
-To make it start with the reasoner active, create the configuration file under `/opt/fuseki/config.ttl` with the following content:
+To make it start with an activated reasoner, create the configuration file under `/opt/fuseki/config.ttl` with the following content:
 
 ```bash
 PREFIX fuseki:  <http://jena.apache.org/fuseki#>
@@ -204,7 +204,7 @@ The following files need to be configured
 
 #### Config_local.yml
 
-Contains the information for the InfluxDB instance used by the smol program. An exmaple would be
+Contains the information for the InfluxDB instance used by the SMOL program. An example would be
 
 ```yaml
 url: http://localhost:8086
@@ -216,7 +216,7 @@ bucket: GreenHouseDemo
 
 #### Config_scheduler.yml
 
-Contains the information for the Simulation Driver instance. An exmaple would be
+Contains the information for the Simulation Driver instance. An example would be
 
 ```yaml
 smol_path: /home/lab/smol/GreenHouse.smol
@@ -236,10 +236,13 @@ shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-
 shelf_2_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
 ```
 
-#### Modify the smol program
+#### Modify the SMOL Digital Twin
 
-The smol program contains the query necessary to check the behaviour of the DT; hence, it's necessary to modify it to fit the needs of the greenhouse. The file is being in `/home/lab/smol/GreenHouse.smol`. The following is an example of the query used for the greenhouse:
+The SMOL Digital Twin contains the query necessary to check the behaviour of the DT.
+It is necessary to modify if the greenhouse is modified. The files for the SMOL Digital Twin are in `/home/lab/smol/`. The following is an example of the query used for the greenhouse:
 
 ```text
 "from(bucket: \"GreenHouseDemo\")
 ```
+
+You find a description of the SMOL Digital Twin and its extensions at the same location  `/home/lab/smol/README.md`
