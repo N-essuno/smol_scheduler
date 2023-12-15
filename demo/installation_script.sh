@@ -141,7 +141,7 @@ sudo systemctl enable activemq
 cd /var/www/
 
 # Clone the repository for the Frontend
-sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greenhousedt.local
+sudo git clone https://github.com/sievericcardo/greenhousedt_frontend.git greenhousedt.local
 
 cd greenhousedt.local
 
