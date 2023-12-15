@@ -29,7 +29,7 @@ class ModelControl extends DecisionMaker(FMO[out Double value] sim)
 
     Unit reconfigureModel(Double newInitial)
         print("RECONFIG> Reconfiguring FMU...");
-        this.sim = simulate("simulation_driver_folder/MBC.fmu",i = newInitial, des = 0.000030003); // set des to a different value then -0.000030003
+        this.sim = simulate("./MBC.fmu",i = newInitial, des = 0.000030003); // set des to a different value then -0.000030003
     end
 end
 //MBC END
