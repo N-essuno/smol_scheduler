@@ -1,14 +1,14 @@
-smol_path: $simulation_driver_folder/Greenhouse_ctrl.smol;$simulation_driver_folder/Greenhouse_data.smol;$simulation_driver_folder/Greenhouse_health.smol;$simulation_driver_folder/Greenhouse_plants.smol;$simulation_driver_folder/Greenhouse_pumps.smol;$simulation_driver_folder/Greenhouse_pots.smol;$simulation_driver_folder/GreenHouse.smol
-lifted_state_output_path: $simulation_driver_folder
-lifted_state_output_file: $simulation_driver_folder/out.ttl
-greenhouse_asset_model_file: $simulation_driver_folder/greenhouse.ttl
-domain_prefix_uri: http://www.smolang.org/grennhouseDT#
+smol_path: ./Greenhouse_ctrl.smol;./Greenhouse_data.smol;./Greenhouse_health.smol;./Greenhouse_plants.smol;./Greenhouse_pumps.smol;./Greenhouse_pots.smol;./GreenHouse.smol
+lifted_state_output_path: ./
+lifted_state_output_file: ./out.ttl
+greenhouse_asset_model_file: ./greenhouse.ttl
+domain_prefix_uri: http://www.smolang.org/greenhouseDT#
 interval_seconds: 60
 triplestore_url: http://localhost:3030/GreenHouse
 
 # Paths of data collector config files. They are edited locally and then sent to data collectors.
-local_shelf_1_data_collector_config_path: $simulation_driver_folder/config_shelf/config_shelf_1.ini
-local_shelf_2_data_collector_config_path: $simulation_driver_folder/config_shelf/config_shelf_2.ini
+local_shelf_1_data_collector_config_path: ./config_shelf/config_shelf_1.ini
+local_shelf_2_data_collector_config_path: ./config_shelf/config_shelf_2.ini
 
 # Paths of data collector config files on (remote) data collectors. Files will be sent to these paths.
 shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
