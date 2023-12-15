@@ -208,10 +208,24 @@ Contains the information for the InfluxDB instance used by the SMOL program. An 
 
 ```yaml
 url: http://localhost:8086
-org: AIO
+org: myOrg
 
 token: <token>
 bucket: GreenHouseDemo
+```
+
+### Configure the file for the output of the Simulation Driver
+
+The simulation driver will output the execution information in a file to make it readable by the frontend. The following is on how to set up the file:
+
+```bash
+sudo mkdir /model
+sudo touch /model/model.txt
+sudo groupadd web
+sudo chown -R :web /model
+sudo chmod -R 775 /model
+sudo usermod -a -G web www-data
+sudo usermod -a -G web lab
 ```
 
 #### Config_scheduler.yml
@@ -245,4 +259,14 @@ It is necessary to modify if the greenhouse is modified. The files for the SMOL 
 "from(bucket: \"GreenHouseDemo\")
 ```
 
-You find a description of the SMOL Digital Twin and its extensions at the same location  `/home/lab/smol/README.md`
+You find a description of the SMOL Digital Twin and its extensions at the same location  `/home/lab/smol/README.md` on the VM. The document can also be retrieved [here](demo/README.md).
+
+### Execute the Simulation Driver
+
+To execute the simulation driver, all the configuration files and the jar files need to be in the same folder. Then, run the following command:
+
+```bash
+java -jar smol_scheduler.jar > /model/model.txt
+```
+
+The default output for the jar file after the building process with gradle is `build/libs/smol_scheduler.jar`.
