@@ -460,14 +460,14 @@ ast:shelf2 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#stemor1
 ast:stemor1 rdf:type owl:NamedIndividual ,
                      ast:Plant ;
-            ast:idealMoisture "40" ;
+            ast:idealMoisture "40"^^xsd:double ;
             ast:plantId "3" .
 
 
 ###  http://www.smolang.org/greenhouseDT#stemor2
 ast:stemor2 rdf:type owl:NamedIndividual ,
                      ast:Plant ;
-            ast:idealMoisture "40" ;
+            ast:idealMoisture "40"^^xsd:double ;
             ast:plantId "4" .
 
 

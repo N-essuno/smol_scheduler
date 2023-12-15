@@ -141,7 +141,7 @@ sudo systemctl enable activemq
 cd /var/www/
 
 # Clone the repository for the Frontend
-sudo git clone https://github.com/sievericcardo/GreenTweenFrontend.git greenhousedt.local
+sudo git clone https://github.com/sievericcardo/greenhousedt_frontend.git greenhousedt.local
 
 cd greenhousedt.local
 
@@ -256,7 +256,7 @@ cp -r demo/* /home/lab/smol/
 cp demo/GreenHouseDT_Manual.pdf /home/lab/Desktop/
 
 sudo sh -c "echo \"
-smol_path: /home/lab/smol/GreenHouse.smol
+smol_path: /home/lab/smol/Greenhouse_ctrl.smol;/home/lab/smol/Greenhouse_data.smol;/home/lab/smol/Greenhouse_health.smol;/home/lab/smol/Greenhouse_plants.smol;/home/lab/smol/Greenhouse_pumps.smol;/home/lab/smol/Greenhouse_pots.smol;/home/lab/smol/GreenHouse.smol
 lifted_state_output_path: /home/lab/smol
 lifted_state_output_file: /home/lab/smol/out.ttl
 greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
@@ -265,13 +265,15 @@ interval_seconds: 60
 triplestore_url: http://localhost:3030/GreenHouse
 
 # Paths of data collector config files. They are edited locally and then sent to data collectors.
-local_shelf_1_data_collector_config_path: /home/lab/smol/config_shelf_1.ini
-local_shelf_2_data_collector_config_path: /home/lab/smol/config_shelf_2.ini
+local_shelf_1_data_collector_config_path: /home/lab/smol/config_shelf/config_shelf_1.ini
+local_shelf_2_data_collector_config_path: /home/lab/smol/config_shelf/config_shelf_2.ini
 
 # Paths of data collector config files on (remote) data collectors. Files will be sent to these paths.
 shelf_1_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
 shelf_2_data_collector_config_path: /home/lab/influx_greenhouse/greenhouse-data-collector/collector/config.ini
 \" > /home/lab/smol/config_scheduler.yml"
+
+sudo sed -i "s/simulation_driver_folder: .*/simulation_driver_folder: \/home\/lab\/smol/g" /home/lab/smol/Greenhouse_ctrl.smol
 
 sudo sh -c "echo \"
 url: http://localhost:8086
