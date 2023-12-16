@@ -233,11 +233,11 @@ sudo usermod -a -G web lab
 Contains the information for the Simulation Driver instance. An example would be
 
 ```yaml
-smol_path: /home/lab/smol/GreenHouse.smol
+smol_path: /home/lab/smol/Greenhouse_ctrl.smol;/home/lab/smol/Greenhouse_data.smol;/home/lab/smol/Greenhouse_health.smol;/home/lab/smol/Greenhouse_plants.smol;/home/lab/smol/Greenhouse_pumps.smol;/home/lab/smol/Greenhouse_pots.smol;/home/lab/smol/GreenHouse.smol
 lifted_state_output_path: /home/lab/smol
 lifted_state_output_file: /home/lab/smol/out.ttl
 greenhouse_asset_model_file: /home/lab/smol/greenhouse.ttl
-domain_prefix_uri: http://www.smolang.org/grennhouseDT#
+domain_prefix_uri: http://www.smolang.org/greenhouseDT#
 interval_seconds: 60
 triplestore_url: http://localhost:3030/GreenHouse
 
