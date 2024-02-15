@@ -17,7 +17,7 @@ dependencies {
     // Do not change jena version
     implementation 'org.apache.jena:apache-jena-libs:3.16.0'
     implementation 'org.apache.jena:jena-core:3.16.0'
-    implementation ('com.github.eduardz1:SemanticObjects:-SNAPSHOT') {
+    implementation ('com.github.smolang:SemanticObjects:-SNAPSHOT') {
         exclude group: 'org.slf4j', module: 'slf4j-simple'
     }
     implementation group: 'com.jcraft', name: 'jsch', version: '0.1.54'
@@ -25,6 +25,13 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '2.0'
     implementation group: 'org.apache.commons', name: 'commons-configuration2', version: '2.9.0'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    // For ActiveMQ
+    implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: '2.4.0'
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation group: 'org.json', name: 'json', version: '20230618'
+    // https://mvnrepository.com/artifact/org.ini4j/ini4j
+    implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
 }
 
 test {
@@ -39,7 +46,7 @@ assemble.dependsOn shadowJar
 jar {
     manifest {
         attributes(
-                'Main-Class': 'no.uio.scheduler.Main'
+                'Main-Class': 'org.smolang.greenhouse.scheduler.Main'
         )
     }
 }

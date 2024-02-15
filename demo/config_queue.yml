@@ -1,0 +1,4 @@
+# Configuration for ActiveMQ - insert actual data, not dummy data. Add file to ignore when using in prod
+queue_url: amqp://localhost:5672
+queue_user: admin
+queue_password: admin

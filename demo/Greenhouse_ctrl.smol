@@ -1,0 +1,120 @@
+abstract class DecisionMaker(Double fIdeal)
+    abstract Unit setCurrent(Double current)
+    Unit setIdeal(Double ideal) this.fIdeal = ideal; end
+    abstract Boolean decide()
+end
+
+class DirectControl extends DecisionMaker(Double fCurrent)
+    override Unit setCurrent(Double current) this.fCurrent = current; end
+    override Boolean decide() return this.fCurrent < this.fIdeal; end
+end
+
+// MBC START
+// simple model-based control, drift is detected using the current value, for a stable solution
+// based on series see https://doi.org/10.23919/ANNSIM55834.2022.9859490
+class ModelControl extends DecisionMaker(FMO[out Double value] sim)
+    override Unit setCurrent(Double current)
+        //we advance the simulation, the time step is hardcoded here
+        this.sim.tick(30.0);
+
+        // here, we use the read value to check whether the model has drifted too far
+        Double modelCurrent = this.sim.value;
+        if modelCurrent - current < -2.0 |  modelCurrent - current > -2.0 then
+            this.reconfigureModel(current);
+        end
+    end
+    override Boolean decide()
+      return this.sim.value < this.fIdeal;
+    end
+
+    Unit reconfigureModel(Double newInitial)
+        print("RECONFIG> Reconfiguring FMU...");
+        this.sim = simulate("./MBC.fmu",i = newInitial, des = 0.000030003); // set des to a different value then -0.000030003
+    end
+end
+//MBC END
+
+class AssetController (AssetModel model, DecisionMaker decide)
+    // clears the list of decisions
+    Unit clearDecisions()
+        while this.model.decisions != null do
+            List<Decision> nx = this.model.decisions.next;
+            destroy(this.model.decisions.content);
+            destroy(this.model.decisions);
+            this.model.decisions = nx;
+        end
+    end
+
+    Unit decision()
+        this.clearDecisions();
+        print("BEHAVIOUR> Behavioural reconfiguration of the asset model...");
+
+        // Retrieve all plants in the digital twin
+        // NOTE: no explicit bookkeeping!
+        List<Plant> plants = access("
+            SELECT DISTINCT ?obj
+            WHERE {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_idealMoisture ?idealMoisture .
+            }");
+
+            //Iterate over all plant
+        while plants != null do
+            Plant plant = plants.content;
+            plants = plants.next;
+
+            if plant != null then
+                //Decision is made here
+                Double plantMoisture = plant.getPotMoisture();
+                this.decide.setCurrent(plantMoisture);
+                this.decide.setCurrent(plant.idealMoisture);
+                Boolean d = this.decide.decide();
+                if d then
+                    print("BEHAVIOUR> Plant that has to be watered: " ++ plant.plantId);
+
+                    //Get the Pump for this plant
+                    List<Pump> pumpsThatWater = access("
+                        SELECT ?obj  {
+                            ?obj prog:Pump_pumpId ?pumpId.
+                            ?pot prog:Pot_plantId %1 ;
+                                 prog:Pot_pumpId ?pumpId .
+                        }", plant.plantId);
+
+                    // Generate decision
+                    if pumpsThatWater != null then
+                        Pump pumpThatWater = pumpsThatWater.content;
+
+                        Decision plantToWater = new Decision(plant.plantId, pumpThatWater.pumpGpioPin, pumpThatWater.pumpId);
+                        this.model.decisions = new List<Decision>(plantToWater, this.model.decisions);
+
+                        print("BEHAVIOUR> pump id: " ++ pumpThatWater.pumpId);
+                    else
+                        print("Could not retrieve pump!");
+                    end
+                end
+
+                //NDVI START
+                //check all healthstates in the digital twin and check whether we are within some bounds
+                List<HealthState> healthStates = access("
+                    SELECT DISTINCT ?obj {
+                        ?obj a prog:HealthState ;
+                             prog:HealthState_healthStateId ?healthStateId ;
+                             prog:HealthState_healthStateName ?healthStateName .
+                    }");
+
+                while healthStates != null do
+                    HealthState healthState = healthStates.content;
+                    healthStates = healthStates.next;
+                    Double plantNdvi = plant.getNdvi();
+
+                    if plantNdvi >= healthState.minNdvi & plantNdvi <= healthState.maxNdvi then
+                            print("BEHAVIOUR> Plant in good health");
+                            plant.healthState = healthState.name;
+                    end
+                end
+                //NDVI END
+            end
+        end
+    end
+end
